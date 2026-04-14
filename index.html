@@ -724,7 +724,7 @@ border-radius: 5px;
 /* ===== スクロールバー ===== */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; } .xpost-counter { font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px; } .xpost-counter.over { color: var(--danger); } .btn-chatgpt { background: rgba(116,198,157,0.12); color: var(--chatgpt); border-color: rgba(116,198,157,0.3); } .btn-chatgpt:hover { background: rgba(116,198,157,0.2); }
 
 </style>
 </head>
@@ -786,7 +786,7 @@ border-radius: 5px;
 <div class="card">
   <div class="card-title">使用プロンプト</div>
   <div class="prompt-note">以下をPerplexityに貼り付けてください</div>
-  <div class="prompt-box">最新の経済・ビジネス・社会ニュースを20件収集してください。
+  <div class="prompt-box" id="step01_prompt">最新の経済・ビジネス・社会ニュースを20件収集してください。
 
 出力形式：
 ・見出し（1行）
@@ -1132,6 +1132,710 @@ border-radius: 5px;
 
   </div>
 
+<!-- STEP09 -->
+<div class="step-panel" id="step09">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 09</span>
+      <h1 class="step-title">記事生成</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">STEP08の推奨に従い、通常版（09a）または逆説構造版（09b）のプロンプトを使用します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">推奨バージョン確認</div>
+    <div id="step09_version_display"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、末尾にSTEP04出力とSTEP08銘柄情報を追加してください</div>
+    <div class="btn-row" style="margin-bottom:10px;margin-top:0;">
+      <button class="btn btn-sm btn-secondary" id="tab09a" onclick="switchStep09Tab('a')">09a 通常版</button>
+      <button class="btn btn-sm btn-secondary" id="tab09b" onclick="switchStep09Tab('b')">09b 逆説構造版</button>
+    </div>
+    <div class="prompt-box" id="step09_prompt_display">読み込み中...</div>
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step09_prompt_display')">Claudeにコピー</button>
+      <span class="copy-flash" id="step09_prompt_display_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step09_output" placeholder="Claudeの記事出力をここに貼り付けてください（仮タイトルを含む全文）..." rows="16" oninput="autoSave('step09_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(9)">完了 - STEP10へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP10 -->
+<div class="step-panel" id="step10">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 10</span>
+      <h1 class="step-title">コンプラチェック</h1>
+      <span class="step-owner-badge owner-chatgpt">ChatGPT</span>
+    </div>
+    <p class="step-desc">STEP09の記事をChatGPTでコンプライアンスチェックします。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をChatGPTに貼り付け、末尾にSTEP09の記事全文を追加してください</div>
+    <div class="prompt-box" id="step10_prompt">あなたは金融コンプライアンスの専門家です。
+以下の記事について、法令・倫理・プラットフォーム規約の観点から問題がないか確認してください。
+
+【チェック観点】
+・投資助言と誤認される表現の有無
+・断定的・誇張的な表現の有無
+・誤解を招く可能性のある記述
+・リスク説明の不足
+
+【出力ルール】
+・問題箇所のみを指摘すること（問題なしの場合は「問題なし」と明記）
+・修正案を必ず提示すること
+・文章全体を書き換えないこと（部分修正のみ）
+
+【出力形式】
+1.問題箇所
+2.理由
+3.修正案
+
+-----
+（STEP09の記事全文をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-chatgpt" onclick="copyText('step10_prompt')">ChatGPTにコピー</button>
+      <span class="copy-flash" id="step10_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step10_output" placeholder="ChatGPTのコンプラチェック結果をここに貼り付けてください..." rows="10" oninput="autoSave('step10_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(10)">完了 - STEP11aへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP11a -->
+<div class="step-panel" id="step11a">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 11a</span>
+      <h1 class="step-title">コンプラ修正反映</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">STEP10の指摘をClaudeに渡し、記事を修正します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、STEP09記事とSTEP10チェック結果を追加してください</div>
+    <div class="prompt-box" id="step11a_prompt">あなたは金融記事の法務編集者です。
+STEP10でChatGPTが実施したコンプライアンスチェックの結果を受け取り、記事に反映してください。
+
+【最重要ルール】
+・因果ロジック・結論・銘柄は変更しない
+・コンプラ指摘箇所のみ修正する
+・修正は最小限の表現変更にとどめる
+
+【修正対象の優先順位】
+優先度A（必ず修正）
+・断定表現（上がる／買い／確実）
+・保証表現（間違いない／必ず）
+・推奨表現（すべき／お勧め）
+
+優先度B（原則修正）
+・「可能性がある」が連続しすぎる場合の整理
+・事実と推測の混在箇所の明確化
+
+【禁止事項】
+・コンプラ指摘のない箇所への手入れ
+・文体・トーンの変更
+・文字数の大幅変更（+-5%以内）
+・本文内でのダブルクォート使用（強調は「」または【】を使う）
+
+【出力形式】
+1.修正後の記事（全文）
+2.修正箇所リスト（修正前→修正後・優先度・修正理由）
+3.未修正箇所（あれば理由）
+
+-----
+元記事：（STEP09の出力をここに貼り付ける）
+コンプラチェック結果：（STEP10の出力をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step11a_prompt')">Claudeにコピー</button>
+      <span class="copy-flash" id="step11a_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step11a_output" placeholder="Claudeの修正済み記事全文をここに貼り付けてください..." rows="16" oninput="autoSave('step11a_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(11)">完了 - STEP11bへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP11b -->
+<div class="step-panel" id="step11b">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 11b</span>
+      <h1 class="step-title">採点</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">修正済み記事をClaudeで5項目採点します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、末尾にSTEP11aの修正済み記事を追加してください</div>
+    <div class="prompt-box" id="step11b_prompt">あなたは金融記事の編集長です。
+以下の記事を5項目で採点してください。
+各項目に点数・一行ダメ出し・改善指示を出力すること。
+
+【採点基準】
+1.因果の納得感（20点）
+・過去ニュースから現在ニュースの接続に飛躍がないか
+・「なぜそうなるか」が読者に伝わるか
+・時系列（過去→現在→未来）が自然に繋がっているか
+
+2.ニュース選定のセンス（15点）
+・ありきたりな組み合わせになっていないか
+・意外性と必然性が両立しているか
+
+3.ストーリー性・読ませる力（30点）
+・続きが気になる構成か
+・冒頭3行で「続きを読む理由」が提示されているか
+・各段落の末尾に引きの設計があるか
+・読後に「誰かに話したい」と思えるか
+
+4.市場予測の具体性（20点）
+・セクターを最低2つ以上具体名で示しているか
+・「資金流入」「上昇圧力」などの市場行動が明示されているか
+
+5.信頼性（15点）
+・事実と推測が明確に区別されているか
+・断定表現・誇張・コンプラリスクがないか
+
+【出力形式】
+1.因果の納得感：XX点
+ダメ出し：
+改善指示：
+
+2〜5同様
+
+合計：XX点/100点
+総評（2行以内）：
+優先リライト箇所：
+
+-----
+（STEP11aの修正済み記事をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step11b_prompt')">Claudeにコピー</button>
+      <span class="copy-flash" id="step11b_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step11b_output" placeholder="Claudeの採点結果をここに貼り付けてください..." rows="12" oninput="autoSave('step11b_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(12)">完了 - STEP12へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP12 -->
+<div class="step-panel" id="step12">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 12</span>
+      <h1 class="step-title">読後感入力</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">修正済み記事を読んで、感じたことを自由に入力してください。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">記事を確認（STEP11a修正済み）</div>
+    <div id="step12_article_display" class="prompt-box" style="max-height:300px;">STEP11aの出力がここに表示されます</div>
+  </div>
+  <div class="card">
+    <div class="card-title">読後感・フリーコメント</div>
+    <textarea class="paste-area" id="step12_feedback" placeholder="読んだ感想を自由に入力してください。面白かった点、気になった点、改善してほしい点など..." rows="8" oninput="autoSave('step12_feedback')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(13)">送信 - STEP13へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP13 -->
+<div class="step-panel" id="step13">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 13</span>
+      <h1 class="step-title">感想解析</h1>
+      <span class="step-owner-badge owner-chatgpt">ChatGPT</span>
+    </div>
+    <p class="step-desc">STEP12の読後感をChatGPTで構造的に分析します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をChatGPTに貼り付け、末尾にSTEP12の感想を追加してください</div>
+    <div class="prompt-box" id="step13_prompt">あなたは読者心理を分析する編集者です。
+以下の「読後感コメント」をもとに、記事の改善点を構造的に整理してください。
+
+【目的】感想を「再現可能な改善データ」に変換すること
+
+【分析観点】
+・どの部分で引っかかったか
+・どこが弱いと感じられたか
+・どの要素が強みだったか
+・改善すべき構造的ポイント
+
+【出力ルール】
+・主観をそのまま繰り返さない
+・必ず「改善アクション」に変換する
+・抽象論で終わらせない
+
+【出力形式】
+1.問題点（構造ベース）
+2.原因
+3.改善アクション（具体）
+
+-----
+【読後感コメント】
+（STEP12の感想をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-chatgpt" onclick="copyText('step13_prompt')">ChatGPTにコピー</button>
+      <span class="copy-flash" id="step13_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step13_output" placeholder="ChatGPTの感想解析結果をここに貼り付けてください..." rows="10" oninput="autoSave('step13_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(14)">完了 - STEP14へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP14 -->
+<div class="step-panel" id="step14">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 14</span>
+      <h1 class="step-title">リライト</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">採点結果と感想解析をもとにClaudeが記事をリライトします。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、元記事・採点結果・感想解析を追加してください</div>
+    <div class="prompt-box" id="step14_prompt">あなたは金融記事の編集者です。
+以下の記事を「採点結果」と「感想解析結果」に基づいて改善してください。
+
+【最重要ルール】
+・記事の因果ロジック（STEP04）は絶対に変更しない
+・新しい情報・因果・銘柄を追加しない
+・記事の結論（市場予測）を変えない
+
+【リライト優先順位】
+優先度A（配点30点）
+3.ストーリー性 → 各段落末尾の引きを強化・失速ポイントを除去
+
+優先度B（配点20点）
+1.因果の納得感 → 飛躍している箇所のみ補強（1文追加まで可）
+4.市場予測の具体性 → 曖昧表現を具体化（内容は変えない）
+
+優先度C（配点15点）
+2.ニュース選定のセンス → 変更不可（触らない）
+5.信頼性 → 断定表現を緩和・事実と推測を明確化
+
+【引きテンプレ（段落末に使うこと）】
+・逆説型：〜と思われている。でも実際は違う
+・欠落型：一番重要な〇〇が見落とされている
+・限定開示型：理由はある。ただ単純ではない
+・主語転換型：問題は〇〇ではなく、〇〇側にある
+
+【禁止事項】
+・文章全体の書き直し
+・文字数の大幅変更（+-10%以内）
+・本文内でのダブルクォート使用（強調は「」または【】を使う）
+
+【出力形式】
+1.改善後の記事（全文）
+2.変更点サマリー（優先度A→B→Cの順）
+3.改善予測スコア（各項目の見込み点数と合計）
+
+【目標】80点未満→80点以上へ / 80点以上→90点を目指す / 90点以上→現状維持
+
+-----
+元記事：（STEP11aの修正済み記事をここに貼り付ける）
+採点結果：（STEP11bの出力をここに貼り付ける）
+感想解析結果：（STEP13の出力をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step14_prompt')">Claudeにコピー</button>
+      <span class="copy-flash" id="step14_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step14_output" placeholder="Claudeのリライト済み記事全文をここに貼り付けてください..." rows="16" oninput="autoSave('step14_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(15)">完了 - STEP15へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP15 -->
+<div class="step-panel" id="step15">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 15</span>
+      <h1 class="step-title">リライト記事確認</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">リライト済み記事を読んで最終確認します。必要であれば直接修正できます。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">リライト済み記事（直接修正可）</div>
+    <textarea class="paste-area" id="step15_article" placeholder="リライト済み記事がここに表示されます。直接修正も可能です。" rows="20" oninput="autoSave('step15_article')"></textarea>
+  </div>
+  <div class="btn-row center">
+    <button class="btn btn-danger" onclick="goToStep(13)">NG - STEP12に戻る</button>
+    <button class="btn btn-primary" onclick="completeStep(16)">OK - タイトル生成へ</button>
+  </div>
+</div>
+
+<!-- STEP16a -->
+<div class="step-panel" id="step16a">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 16a</span>
+      <h1 class="step-title">タイトル生成（Claude）</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">仮タイトルが気に入った場合はスキップしてSTEP16bへ進めます。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、仮タイトルとリライト済み記事を追加してください</div>
+    <div class="prompt-box" id="step16a_prompt">あなたは金融記事のコピーライターです。
+STEP09で生成した仮タイトルをベースにタイトル候補を3つ生成してください。
+
+【タイトル設計ルール】
+・クリックしたくなる違和感・逆説・ズレを必ず含めること
+・答えを書かない（続きを読みたくなる余白を残す）
+・20〜40代金融初心者が「自分ごと」と感じられる表現にすること
+・32字以内を目安に簡潔にまとめること
+・煽り・誇張表現は禁止（断定・過激表現NG）
+・本文内でのダブルクォート使用禁止（強調は「」または【】を使う）
+
+【出力形式】
+A（仮タイトル改善案）：
+B（新規・別アプローチ）：
+C（新規・別アプローチ）：
+
+-----
+仮タイトル：（STEP09出力冒頭の仮タイトルをここに貼る）
+記事全文：（STEP15の確認済み記事をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step16a_prompt')">Claudeにコピー</button>
+      <span class="copy-flash" id="step16a_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step16a_output" placeholder="Claudeのタイトル候補3つをここに貼り付けてください..." rows="6" oninput="autoSave('step16a_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-secondary" onclick="completeStep(17)">スキップしてSTEP16bへ</button>
+      <button class="btn btn-primary" onclick="completeStep(17)">完了 - STEP16bへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP16b -->
+<div class="step-panel" id="step16b">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 16b</span>
+      <h1 class="step-title">タイトル生成（ChatGPT）</h1>
+      <span class="step-owner-badge owner-chatgpt">ChatGPT</span>
+    </div>
+    <p class="step-desc">Claude版と並行してChatGPTでもタイトルを生成します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をChatGPTに貼り付け、仮タイトルとリライト済み記事を追加してください</div>
+    <div class="prompt-box" id="step16b_prompt">あなたは金融記事のコピーライターです。
+STEP09で生成した仮タイトルをベースにタイトル候補を3つ生成してください。
+
+【タイトル設計ルール】
+・クリックしたくなる「違和感」「逆説」「ズレ」を必ず含めること
+・タイトル内で答えを言い切らないこと（続きを読みたくなる余白を残す）
+・20〜40代の金融初心者が「自分ごと」と感じる表現にすること
+・32字以内を目安に簡潔にまとめること
+・煽り・誇張表現は禁止（断定・過激表現NG）
+
+【出力形式】
+A（仮タイトル改善案）：
+B（新規・別アプローチ）：
+C（新規・別アプローチ）：
+
+-----
+仮タイトル：（STEP09出力冒頭の仮タイトルをここに貼る）
+記事全文：（STEP15の確認済み記事をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-chatgpt" onclick="copyText('step16b_prompt')">ChatGPTにコピー</button>
+      <span class="copy-flash" id="step16b_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step16b_output" placeholder="ChatGPTのタイトル候補3つをここに貼り付けてください..." rows="6" oninput="autoSave('step16b_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(18)">完了 - STEP16cへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP16c -->
+<div class="step-panel" id="step16c">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 16c</span>
+      <h1 class="step-title">タイトル選択</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">候補から1つ選び、必要であれば微修正して確定します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Claude候補</div>
+    <div id="step16c_claude_display" class="prompt-box" style="min-height:60px;max-height:150px;">STEP16aの出力がここに表示されます</div>
+  </div>
+  <div class="card">
+    <div class="card-title">ChatGPT候補</div>
+    <div id="step16c_chatgpt_display" class="prompt-box" style="min-height:60px;max-height:150px;">STEP16bの出力がここに表示されます</div>
+  </div>
+  <div class="card">
+    <div class="card-title">確定タイトル（直接入力・修正可）</div>
+    <input class="form-input" type="text" id="step16c_final_title" placeholder="選んだタイトルをここに入力・修正してください" oninput="autoSave('step16c_final_title')">
+    <div class="btn-row right" style="margin-top:12px;">
+      <button class="btn btn-primary" onclick="completeStep(19)">タイトル確定 - STEP17へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP17 -->
+<div class="step-panel" id="step17">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 17</span>
+      <h1 class="step-title">note公開・コピペ</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">タイトルと記事本文をnoteに貼り付けます。無料/有料の分割点を確認してください。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">確定タイトル</div>
+    <div id="step17_title_display" class="success-box" style="font-size:15px;font-weight:700;"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="copyElementText('step17_title_display')">タイトルをコピー</button>
+      <span class="copy-flash" id="step17_title_display_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">記事本文（STEP15確認済み）</div>
+    <div id="step17_article_display" class="prompt-box" style="max-height:300px;"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="copyElementText('step17_article_display')">本文をコピー</button>
+      <span class="copy-flash" id="step17_article_display_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="info-box">無料/有料の分割点を確認してからnoteに貼り付けてください。</div>
+  <div class="card">
+    <div class="card-title">note URL（投稿後に入力）</div>
+    <input class="form-input" type="url" id="step17_note_url" placeholder="https://note.com/..." oninput="autoSave('step17_note_url')">
+  </div>
+  <div class="btn-row right">
+    <button class="btn btn-primary" onclick="completeStep(20)">投稿完了 - X投稿文生成へ</button>
+  </div>
+</div>
+
+<!-- STEP18a -->
+<div class="step-panel" id="step18a">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 18a</span>
+      <h1 class="step-title">X投稿文生成（ChatGPT）</h1>
+      <span class="step-owner-badge owner-chatgpt">ChatGPT</span>
+    </div>
+    <p class="step-desc">ChatGPTで余白型・損失回避型・ハイブリッド型の3パターンを生成します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をChatGPTに貼り付け、記事タイトルと記事全文を追加してください</div>
+    <div class="prompt-box" id="step18a_prompt">あなたは「クリックされるX投稿」を作るプロのコピーライターです。
+以下の記事をもとに、noteへの流入を最大化する投稿文を作成してください。
+
+【ChatGPT版担当】余白型／損失回避型／ハイブリッド型の3パターン
+
+【制約】
+・140字以内
+・結論を書かない
+・過度な煽り禁止（信頼性重視）
+・自分ごと化を必ず含める
+・URLは本文に含めない（投稿直後に自己リプライで貼る）
+・断定表現禁止
+・ダブルクォート使用禁止（強調は「」または【】を使う）
+
+【出力】
+A（余白型）：興味喚起・答えを出さず余白で引く
+B（損失回避型）：「知らないと損」の感覚で引く
+C（ハイブリッド型）：余白と損失回避を組み合わせる
+
+-----
+記事タイトル：（STEP16cで確定したタイトル）
+記事全文：（STEP15のリライト済み記事をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-chatgpt" onclick="copyText('step18a_prompt')">ChatGPTにコピー</button>
+      <span class="copy-flash" id="step18a_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step18a_output" placeholder="ChatGPTのX投稿文3パターンをここに貼り付けてください..." rows="8" oninput="autoSave('step18a_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(21)">完了 - STEP18bへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP18b -->
+<div class="step-panel" id="step18b">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 18b</span>
+      <h1 class="step-title">X投稿文生成（Claude）</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">Claudeで数字型・共感型・予言型の3パターンを生成します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、記事タイトルと記事全文を追加してください</div>
+    <div class="prompt-box" id="step18b_prompt">あなたは「クリックされるX投稿」を作るプロのコピーライターです。
+以下の記事をもとに、noteへの流入を最大化する投稿文を作成してください。
+
+【Claude版担当】数字型／共感型／予言型の3パターン
+
+【制約】
+・140字以内
+・結論を書かない
+・過度な煽り禁止（信頼性重視）
+・自分ごと化を必ず含める
+・URLは本文に含めない（投稿直後に自己リプライで貼る）
+・断定表現禁止
+・ダブルクォート使用禁止（強調は「」または【】を使う）
+
+【出力】
+A（数字型）：因果のステップ数やセクター数など具体的な数字を使う
+B（共感型）：読者の日常や感覚に寄り添う入口を作る
+C（予言型）：桶屋理論の因果構造を1行で示唆する・「かも？」で余白を残す
+
+-----
+記事タイトル：（STEP16cで確定したタイトル）
+記事全文：（STEP15のリライト済み記事をここに貼り付ける）</div>
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step18b_prompt')">Claudeにコピー</button>
+      <span class="copy-flash" id="step18b_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step18b_output" placeholder="ClaudeのX投稿文3パターンをここに貼り付けてください..." rows="8" oninput="autoSave('step18b_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(22)">完了 - STEP18cへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP18c -->
+<div class="step-panel" id="step18c">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 18c</span>
+      <h1 class="step-title">X投稿文選択・投稿</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">候補から選択し、投稿文と自己リプライ文を編集してXに投稿します。</p>
+  </div>
+  <div class="info-box">投稿直後5分以内に自己いいね・自己リプライ（noteURL）を忘れずに！</div>
+  <div class="card">
+    <div class="card-title">ChatGPT候補</div>
+    <div id="step18c_chatgpt_display" class="prompt-box" style="max-height:150px;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Claude候補</div>
+    <div id="step18c_claude_display" class="prompt-box" style="max-height:150px;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">投稿文（直接修正可・140字以内）</div>
+    <textarea class="paste-area" id="step18c_post" placeholder="選んだ投稿文をここに貼り付け・修正してください..." rows="5" oninput="autoSave('step18c_post');countChars('step18c_post','counter_post')"></textarea>
+    <div class="xpost-counter" id="counter_post">0 / 140</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="copyText('step18c_post')">投稿文をコピー</button>
+      <span class="copy-flash" id="step18c_post_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">自己リプライ文（noteURL付き・直接修正可）</div>
+    <textarea class="paste-area" id="step18c_reply" placeholder="自己リプライ用のテキストとnoteURLをここに入力してください..." rows="4" oninput="autoSave('step18c_reply');countChars('step18c_reply','counter_reply')"></textarea>
+    <div class="xpost-counter" id="counter_reply">0 / 140</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="copyText('step18c_reply')">リプライ文をコピー</button>
+      <span class="copy-flash" id="step18c_reply_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="btn-row right">
+    <button class="btn btn-primary" onclick="completeStep(23)">投稿完了 - STEP19へ</button>
+  </div>
+</div>
+
+<!-- STEP19 -->
+<div class="step-panel" id="step19">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 19</span>
+      <h1 class="step-title">Tracker登録</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">銘柄情報をTrackerに登録します。STEP07・08の情報が自動引用されています。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">記事情報（自動引用）</div>
+    <div class="form-group">
+      <label class="form-label">記事タイトル<span class="required">*</span></label>
+      <input class="form-input" type="text" id="step19_title" oninput="autoSave('step19_title')">
+    </div>
+    <div class="form-group">
+      <label class="form-label">note URL<span class="required">*</span></label>
+      <input class="form-input" type="url" id="step19_url" oninput="autoSave('step19_url')">
+    </div>
+    <div class="form-group">
+      <label class="form-label">記事生成日</label>
+      <input class="form-input" type="text" id="step19_date" readonly>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">銘柄情報（修正可）</div>
+    <div id="step19_stocks_container"></div>
+  </div>
+  <div class="warn-box">Trackerへ送信すると、記事生成の作業データが削除されます。</div>
+  <div class="btn-row right">
+    <button class="btn btn-primary" onclick="sendToTracker()">Trackerへ送信</button>
+  </div>
+</div>
+
 </main>
 
 <!-- モーダル -->
@@ -1225,8 +1929,13 @@ function init() {
 }
 
 function loadAllSavedText() {
-  const ids = ['step01_output','step02_output','step03_output',
-    'step04_output','step05_output','step07_output'];
+    const ids = ['step01_output','step02_output','step04_output','step05_output',
+    'step07_output','step09_output','step10_output','step11a_output',
+    'step11b_output','step12_feedback','step13_output','step14_output',
+    'step15_article','step16a_output','step16b_output','step16c_final_title',
+    'step17_note_url','step18a_output','step18b_output',
+    'step18c_post','step18c_reply','step19_title','step19_url'];
+
   ids.forEach(loadSavedText);
 }
 
@@ -1286,9 +1995,16 @@ function goToStep(num, save = true) {
   window.scrollTo(0, 0);
 
   // STEP固有の初期化
-  if (num === 6) renderStep06Result();
-  if (num === 7) updateStep07Prompt();
-  if (num === 8) renderStep08();
+    if (num === 6)  renderStep06Result();
+  if (num === 7)  updateStep07Prompt();
+  if (num === 8)  renderStep08();
+  if (num === 9)  renderStep09();
+  if (num === 12) renderStep12();
+  if (num === 16) renderStep15Article();
+  if (num === 19) renderStep16c();
+  if (num === 20) renderStep17();
+  if (num === 23) renderStep18c();
+  if (num === 24) renderStep19();
 }
 
 function completeStep(stepNum) {
@@ -1297,7 +2013,7 @@ function completeStep(stepNum) {
   }
 
   // 次のSTEPへ（番号でマッピング）
-  const stepMap = {1:2, 2:3, 3:4, 4:5, 5:6, 7:8};
+  const stepMap = {1:2,2:3,3:4,4:5,5:6,7:8,8:9,9:10,10:11,11:12,12:13,13:14,14:15,15:16,16:17,17:18,18:19,19:20,20:21,21:22,22:23,23:24};
   const next = stepMap[stepNum];
   if (next) {
     saveState();
@@ -1837,6 +2553,289 @@ function showModal(title, body, btns) {
 }
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ===== STEP09 =====
+const PROMPT_09A = `あなたは「桶屋理論」専門の金融ストーリーテラーです。
+
+【桶屋理論の定義】
+一見無関係なニュースが迂回した因果連鎖を経て市場に影響する構造。
+この「迂回の意外性」が記事の最大の価値。
+
+【最重要ルール】
+・STEP04の因果ロジックを変更・追加・省略しない
+・ロジックの順序を維持する
+・面白さのために正確性を犠牲にしない
+
+【冒頭タイトル仮置き】
+記事生成の前に以下を1行出力すること：
+仮タイトル：（本文と一貫したトーンで1つ）
+
+【冒頭フック（5型から1つ選択・型名を明記）】
+1.逆転型：増えているのに足りなくなる
+2.自己矛盾型：成長しようとするほど自分を詰まらせる
+3.比較ズレ型：AのはずなのにBになっている
+4.同時発生型：XとYが同時に起きている（普通は逆）
+5.極端化型：全員が得しようとして全員が損する
+
+【読者の感情設計】
+起：違和感・「なぜ？」
+承：「そういうことか」という納得
+転：「あれ、でも待って」という裏切り
+結：「これは自分に関係ある」という気づき
+
+【構成と字数配分】
+起（200〜300字）・承（300〜400字）・転（400〜500字）・結（200〜300字）
+
+【段落末の引き設計（必須）】
+・逆説型／欠落型／限定開示型／主語転換型のいずれかを各段落末に使うこと
+
+【夢株パート（転の末尾に組み込む）】
+1.未認知の小型株（宝探し感）
+2.小資金の優位性
+3.具体ヒント（記事テーマに紐付ける）
+4.低位株の特性（JP：株価1,000円未満／US：株価$10未満）
+5.爆発力（毎回表現を変える）
+
+【禁止事項】
+・新しい因果関係の追加
+・断定・煽り・誇張表現
+・株価の具体的数値を本文に含める
+・本文内でのダブルクォート使用（強調は「」または【】を使う）
+
+【文字数】合計1,100〜1,500字
+
+-----
+（STEP04の出力とSTEP08の銘柄情報をここに貼り付ける）`;
+
+const PROMPT_09B = `あなたは「桶屋理論」専門の金融ストーリーテラーです。
+
+【このプロンプトを使う条件】
+・因果の本丸（最も恩恵を受ける銘柄）が株価条件を超過している
+・条件内の夢株が本丸の周辺・間接的な位置にとどまる
+・「主役はすでに買われている、だからこそ周辺に機会がある」という逆説が成立している場合
+
+【最重要ルール】
+・STEP04の因果ロジックを変更・追加・省略しない
+・「本命はすでに動いている」という事実を隠さない
+・「だからこそ周辺に機会がある」という逆説をオチに使う
+
+【冒頭タイトル仮置き】
+記事生成の前に以下を1行出力すること：
+仮タイトル：（逆説の構造が伝わるトーンで1つ）
+
+【冒頭フック（5型から1つ選択・型名を明記）】
+1.逆転型／2.自己矛盾型／3.比較ズレ型／4.同時発生型／5.極端化型
+
+【読者の感情設計】
+起：「なんでこのニュースが株に関係するの？」という違和感
+承：「そういうことか、でも本命はもう高い…」という現実
+転：「じゃあここを見ればいいのか」という気づき
+結：「良いテーマほど本命は動いている、次の波紋を探す」という納得
+
+【構成と字数配分】
+起（200〜300字）・承（300〜400字）・転（400〜500字）・結（200〜300字）
+
+転のポイント：
+・本命銘柄を提示→「ただし株価はすでに〇〇円台」と現実を明示
+・夢株を「本命の周辺・まだ市場に気づかれていない」文脈で登場させる
+・「投資判断はご自身で」を必ず入れる
+
+結のポイント：
+「良いテーマほど本命はすでに動いている。桶屋理論が面白いのはその次の波紋を探すことだ。」の趣旨で締める（表現は毎回変える）
+
+【禁止事項】
+・新しい因果関係の追加
+・断定・煽り・誇張表現
+・株価の具体的数値を本文に含める
+・本命銘柄を「買い推奨」と読める書き方
+・本文内でのダブルクォート使用（強調は「」または【】を使う）
+
+【文字数】合計1,100〜1,500字
+
+-----
+（STEP04の出力とSTEP08の銘柄情報をここに貼り付ける）`;
+
+let step09CurrentTab = 'a';
+
+function renderStep09() {
+  const version = state.articleVersion || 'A';
+  const el = document.getElementById('step09_version_display');
+  if (el) {
+    if (version === 'B') {
+      el.innerHTML = '<div class="recommend-badge">推奨: 09b（逆説構造版）</div>';
+    } else {
+      el.innerHTML = '<div class="recommend-badge" style="background:var(--accent2-dim);border-color:rgba(96,168,240,0.3);color:var(--accent2);">推奨: 09a（通常版）</div>';
+    }
+  }
+  switchStep09Tab(version === 'B' ? 'b' : 'a');
+}
+
+function switchStep09Tab(tab) {
+  step09CurrentTab = tab;
+  const el = document.getElementById('step09_prompt_display');
+  if (el) el.textContent = tab === 'b' ? PROMPT_09B : PROMPT_09A;
+  const tabA = document.getElementById('tab09a');
+  const tabB = document.getElementById('tab09b');
+  if (tabA) tabA.className = 'btn btn-sm ' + (tab === 'a' ? 'btn-claude' : 'btn-secondary');
+  if (tabB) tabB.className = 'btn btn-sm ' + (tab === 'b' ? 'btn-claude' : 'btn-secondary');
+}
+
+function renderStep12() {
+  const el = document.getElementById('step12_article_display');
+  if (el) el.textContent = localStorage.getItem(KEY_PREFIX+'step11a_output') || '（STEP11aの出力がありません）';
+}
+
+function renderStep15Article() {
+  const el = document.getElementById('step15_article');
+  if (el && !el.value) el.value = localStorage.getItem(KEY_PREFIX+'step14_output') || '';
+}
+
+function renderStep16c() {
+  const elC = document.getElementById('step16c_claude_display');
+  const elG = document.getElementById('step16c_chatgpt_display');
+  if (elC) elC.textContent = localStorage.getItem(KEY_PREFIX+'step16a_output') || '（STEP16aの出力がありません）';
+  if (elG) elG.textContent = localStorage.getItem(KEY_PREFIX+'step16b_output') || '（STEP16bの出力がありません）';
+}
+
+function renderStep17() {
+  const title = localStorage.getItem(KEY_PREFIX+'step16c_final_title') || '';
+  const article = localStorage.getItem(KEY_PREFIX+'step15_article') || '';
+  const elT = document.getElementById('step17_title_display');
+  const elA = document.getElementById('step17_article_display');
+  if (elT) elT.textContent = title || '（タイトル未確定）';
+  if (elA) elA.textContent = article || '（記事本文がありません）';
+  const el19t = document.getElementById('step19_title');
+  if (el19t && !el19t.value) el19t.value = title;
+}
+
+function renderStep18c() {
+  const elG = document.getElementById('step18c_chatgpt_display');
+  const elC = document.getElementById('step18c_claude_display');
+  if (elG) elG.textContent = localStorage.getItem(KEY_PREFIX+'step18a_output') || '（STEP18aの出力がありません）';
+  if (elC) elC.textContent = localStorage.getItem(KEY_PREFIX+'step18b_output') || '（STEP18bの出力がありません）';
+  const noteUrl = localStorage.getItem(KEY_PREFIX+'step17_note_url') || '';
+  const elReply = document.getElementById('step18c_reply');
+  if (elReply && !elReply.value && noteUrl) {
+    elReply.value = noteUrl;
+    autoSave('step18c_reply');
+  }
+}
+
+function renderStep19() {
+  const title = localStorage.getItem(KEY_PREFIX+'step16c_final_title') || '';
+  const url = localStorage.getItem(KEY_PREFIX+'step17_note_url') || '';
+  const el19t = document.getElementById('step19_title');
+  const el19u = document.getElementById('step19_url');
+  const el19d = document.getElementById('step19_date');
+  if (el19t && !el19t.value) el19t.value = title;
+  if (el19u && !el19u.value) el19u.value = url;
+  if (el19d) el19d.value = new Date().toLocaleDateString('ja-JP');
+
+  const container = document.getElementById('step19_stocks_container');
+  if (!container) return;
+  const stocks = state.step08Data;
+  if (!stocks.length) {
+    container.innerHTML = '<div class="warn-box">銘柄情報がありません。STEP08に戻って入力してください。</div>';
+    return;
+  }
+  container.innerHTML = stocks.map((s, i) => {
+    const market = s['市場'] || 'JP';
+    return `
+      <div class="stock-card">
+        <div class="stock-card-header">
+          <span class="stock-card-name">${s['銘柄名']||'銘柄'+(i+1)}</span>
+          <span class="stock-card-code">${s['コード']||'-'}</span>
+          <span class="stock-market-badge ${market==='US'?'badge-us':'badge-jp'}">${market}</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">登録時株価<span class="required">*</span></label>
+            <input class="form-input" type="number" id="tracker_stock_${i}_price" value="${s.price_main||''}" oninput="updateTrackerStock(${i},'price',this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">予想方向<span class="required">*</span></label>
+            <select class="form-select" id="tracker_stock_${i}_direction" onchange="updateTrackerStock(${i},'direction',this.value)">
+              <option value="">選択</option>
+              <option value="up">上昇</option>
+              <option value="down">下降</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">判定日</label>
+          <select class="form-select" id="tracker_stock_${i}_deadline" onchange="updateTrackerStock(${i},'deadline',this.value)">
+            <option value="1w">1週間後</option>
+            <option value="1m">1ヶ月後</option>
+            <option value="3m">3ヶ月後</option>
+          </select>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateTrackerStock(i, field, value) {
+  if (state.step08Data[i]) state.step08Data[i]['tracker_'+field] = value;
+}
+
+function sendToTracker() {
+  const title = document.getElementById('step19_title').value.trim();
+  const url = document.getElementById('step19_url').value.trim();
+  if (!title || !url) { showToast('記事タイトルとURLを入力してください'); return; }
+
+  const payload = {
+    articleTitle: title,
+    articleUrl: url,
+    articleDate: new Date().toLocaleDateString('ja-JP'),
+    stocks: state.step08Data.map((s, i) => ({
+      name: s['銘柄名'] || '',
+      code: s['コード'] || '',
+      market: s['市場'] || 'JP',
+      price: s['tracker_price'] || s.price_main || '',
+      direction: s['tracker_direction'] || '',
+      deadline: s['tracker_deadline'] || '1m',
+    }))
+  };
+  localStorage.setItem(KEY_PREFIX+'tracker_payload', JSON.stringify(payload));
+
+  document.getElementById('modalTitle').textContent = 'Trackerへ送信';
+  document.getElementById('modalBody').textContent = `「${title}」の銘柄情報をTrackerに登録します。送信後、この記事の作業データは削除されます。`;
+  document.getElementById('modalBtns').innerHTML = `
+    <button class="modal-btn cancel" onclick="closeModal()">キャンセル</button>
+    <button class="modal-btn ok" onclick="executeTrackerSend()">送信する</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function executeTrackerSend() {
+  closeModal();
+  ['step01_output','step02_output','step04_output','step04_prompt',
+   'step05_output','step07_output','step08_data','step09_output',
+   'step10_output','step11a_output','step11b_output','step12_feedback',
+   'step13_output','step14_output','step15_article','step16a_output',
+   'step16b_output','step16c_final_title','step17_note_url',
+   'step18a_output','step18b_output','step18c_post','step18c_reply',
+   'step19_title','step19_url'
+  ].forEach(k => localStorage.removeItem(KEY_PREFIX+k));
+
+  state = { currentStep:1, completedSteps:[], excludedStocks:[], reExtractFlag:false, step03Selected:null, step08Data:[], articleVersion:null };
+  saveState();
+  showToast('Trackerへ送信しました。Trackerを開いてください。');
+  setTimeout(() => { window.location.href = 'tracker.html'; }, 1500);
+}
+
+function copyElementText(id) {
+  const el = document.getElementById(id);
+  const text = el ? el.textContent : '';
+  navigator.clipboard.writeText(text).then(() => showCopyFlash(id+'_flash')).catch(() => { fallbackCopy(text); showCopyFlash(id+'_flash'); });
+}
+
+function countChars(textareaId, counterId) {
+  const ta = document.getElementById(textareaId);
+  const counter = document.getElementById(counterId);
+  if (!ta || !counter) return;
+  const len = ta.value.length;
+  counter.textContent = len + ' / 140';
+  counter.className = 'xpost-counter' + (len > 140 ? ' over' : '');
 }
 
 // ===== 起動 =====
