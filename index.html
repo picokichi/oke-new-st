@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 
 <html lang="ja">
 <head>
@@ -828,34 +828,39 @@ border-radius: 5px;
 <div class="card">
   <div class="card-title">使用プロンプト</div>
   <div class="prompt-note">以下をChatGPTに貼り付け、末尾にSTEP01の出力を追加してください</div>
-  <div class="prompt-box" id="step02_prompt">あなたはニュース選別の専門アナリストです。
+    <div class="prompt-box" id="step02_prompt">あなたはニュース選別の専門アナリストです。
 
 以下のニュース一覧を分析し、記事化に適したニュースの組合せを10パターン作成してください。
 
-【出力要件】
-・各組合せは「最新ニュース」と「過去ニュース」の2つで構成すること
-・ラベルは必ず以下に統一すること
-　- 最新ニュース
-　- 過去ニュース
-・各組合せに「ジャンル」を1行追加すること
-　例：地政学x産業 / 金融政策x不動産 / 技術x素材
-・各組合せごとに「なぜこの2つが繋がるのか」を1行で説明すること
-・因果関係が弱いもの、ただの関連性に留まるものは除外すること
+【選定条件】
+・各組合せは「最新ニュース」と「過去ニュース」の2本で構成すること
+・ジャンルが遠いほど評価が高い（例：地政学x素材、気候x金融など）
+・因果関係が弱いもの・ただの関連性に留まるものは除外すること
 
 【出力形式】
-番号付きで10個
-各項目は以下の形式で出力：
+JSONのみで出力すること。説明文・マークダウン不要。
 
-番号
-ジャンル：
-最新ニュース：
-過去ニュース：
-接続理由：
+[
+  {
+    "id": 1,
+    "genre": "ジャンルA x ジャンルB",
+    "latestNews": "最新ニュースの見出し",
+    "latestUrl": "最新ニュースのURL",
+    "pastNews": "過去ニュースの見出し",
+    "pastUrl": "過去ニュースのURL",
+    "summary": "各ニュースの要約（1〜2文）",
+    "surprise": "意外性のポイント（なぜ意外な組み合わせか）",
+    "connection": "接続可能性（因果の繋がり方）",
+    "reason": "この組み合わせを残した理由"
+  }
+]
+
+10個のオブジェクトを配列で返すこと。
 
 -----
-
 【ニュース一覧】
 （STEP01の出力をここに貼り付ける）</div>
+
 <div class="btn-row">
 <button class="btn btn-secondary" onclick="copyText('step02_prompt')">コピー</button>
 <span class="copy-flash" id="step02_prompt_flash">コピーしました</span>
@@ -2024,21 +2029,44 @@ function completeStep(stepNum) {
 // ===== STEP03 組み合わせ解析 =====
 let step03Patterns = [];
 
-function parseStep02() {
+ffunction parseStep02() {
   const text = localStorage.getItem(KEY_PREFIX + 'step02_output') || '';
   if (!text.trim()) {
     showToast('STEP02の出力が保存されていません');
     return;
   }
 
-  // パターンを解析（番号区切りで分割）
+  // JSON形式を試みる
+  try {
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      const arr = JSON.parse(jsonMatch[0]);
+      step03Patterns = arr.map(item => ({
+        num:    item.id || 0,
+        genre:  item.genre || '',
+        latest: item.latestNews || '',
+        latestUrl: item.latestUrl || '',
+        past:   item.pastNews || '',
+        pastUrl: item.pastUrl || '',
+        summary: item.summary || '',
+        surprise: item.surprise || '',
+        connection: item.connection || '',
+        reason: item.reason || '',
+        raw:    JSON.stringify(item)
+      }));
+      renderStep03Choices();
+      return;
+    }
+  } catch(e) {}
+
+  // フォールバック：テキスト形式を解析
   const blocks = text.split(/\n(?=\d+[\.\)）]|\d+\s)/g).filter(b => b.trim());
   step03Patterns = blocks.map((block, i) => {
     const lines = block.trim().split('\n').filter(l => l.trim());
-    const genre = (lines.find(l => l.includes('ジャンル')) || '').replace(/ジャンル[：:]/,'').trim();
-    const latest = (lines.find(l => l.includes('最新ニュース')) || '').replace(/最新ニュース[：:]/,'').trim();
-    const past = (lines.find(l => l.includes('過去ニュース')) || '').replace(/過去ニュース[：:]/,'').trim();
-    const reason = (lines.find(l => l.includes('接続理由')) || '').replace(/接続理由[：:]/,'').trim();
+    const genre  = (lines.find(l => l.includes('ジャンル'))   || '').replace(/ジャンル[：:]/,'').trim();
+    const latest = (lines.find(l => l.includes('最新ニュース'))|| '').replace(/最新ニュース[：:]/,'').trim();
+    const past   = (lines.find(l => l.includes('過去ニュース'))|| '').replace(/過去ニュース[：:]/,'').trim();
+    const reason = (lines.find(l => l.includes('接続理由'))   || '').replace(/接続理由[：:]/,'').trim();
     return { num: i + 1, genre, latest, past, reason, raw: block };
   }).filter(p => p.latest || p.past);
 
@@ -2052,15 +2080,18 @@ function renderStep03Choices() {
     return;
   }
 
-  let html = step03Patterns.map(p => `
+    container.innerHTML = step03Patterns.map(p => `
     <div class="choice-card" id="choice_${p.num}" onclick="selectChoice(${p.num})">
       <div class="choice-card-num">パターン ${p.num}</div>
       <div class="choice-card-genre">${p.genre || '（ジャンル不明）'}</div>
       <div class="choice-card-news">最新: <span>${p.latest || '（取得失敗）'}</span></div>
       <div class="choice-card-news">過去: <span>${p.past || '（取得失敗）'}</span></div>
-      ${p.reason ? `<div class="choice-card-reason">接続理由: ${p.reason}</div>` : ''}
-    </div>
-  `).join('');
+      ${p.summary ? `<div class="choice-card-reason">要約: ${p.summary}</div>` : ''}
+      ${p.surprise ? `<div class="choice-card-reason" style="color:var(--accent);">意外性: ${p.surprise}</div>` : ''}
+      ${p.connection ? `<div class="choice-card-reason">接続: ${p.connection}</div>` : ''}
+      ${p.reason ? `<div class="choice-card-reason">残した理由: ${p.reason}</div>` : ''}
+    </div>`).join('');
+
 
   container.innerHTML = html;
 }
