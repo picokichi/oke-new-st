@@ -563,11 +563,11 @@ margin: 20px 0;
   let deleteTarget = null;
 
   // キーの分類
-  function classifyKey(key) {
-    if (key.startsWith('oka_index_') || key.startsWith('bucket_index') || key === 'currentStep' || key === 'excludedStocks' || key.startsWith('step')) {
+    function classifyKey(key) {
+    if (key === 'okaya_state' || (key.startsWith('okaya_') && !key.startsWith('okaya_tracker'))) {
       return 'index';
     }
-    if (key.startsWith('oka_tracker_') || key.startsWith('bucket_tracker') || key.startsWith('tracker')) {
+    if (key.startsWith('okaya_tracker')) {
       return 'tracker';
     }
     return 'other';
