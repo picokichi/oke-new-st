@@ -2030,6 +2030,8 @@ function completeStep(stepNum) {
 let step03Patterns = [];
 
 function parseStep02() {
+  const el = document.getElementById('step02_output');
+  if (el) localStorage.setItem(KEY_PREFIX + 'step02_output', el.value);
   const text = localStorage.getItem(KEY_PREFIX + 'step02_output') || '';
   if (!text.trim()) {
     showToast('STEP02の出力が保存されていません');
@@ -2038,7 +2040,7 @@ function parseStep02() {
 
   // JSON形式を試みる
   try {
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    const jsonMatch = text.match(/\[[\s\S]*\]/s);
     if (jsonMatch) {
       const arr = JSON.parse(jsonMatch[0]);
       step03Patterns = arr.map(item => ({
