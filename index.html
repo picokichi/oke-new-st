@@ -952,7 +952,7 @@ border-radius: 5px;
 <div class="card">
   <div class="card-title">使用プロンプト</div>
   <div class="prompt-note">以下をChatGPTに貼り付け、末尾にSTEP04の出力を追加してください</div>
-  <div class="prompt-box">あなたは因果構造の妥当性を検証するアナリストです。
+  <div class="prompt-box" id="step05_prompt">あなたは因果構造の妥当性を検証するアナリストです。
 
 以下の入力は、STEP04でClaudeが生成した因果構造です。
 
@@ -2644,8 +2644,6 @@ function copyElementText(id) {
   const text = el ? el.textContent : '';
   doCopy(text, id + '_flash');
 }
-
-
 
 function showCopyFlash(id) {
   const el = document.getElementById(id);
