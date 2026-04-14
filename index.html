@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="ja">
 <head>
@@ -2029,7 +2029,7 @@ function completeStep(stepNum) {
 // ===== STEP03 組み合わせ解析 =====
 let step03Patterns = [];
 
-ffunction parseStep02() {
+function parseStep02() {
   const text = localStorage.getItem(KEY_PREFIX + 'step02_output') || '';
   if (!text.trim()) {
     showToast('STEP02の出力が保存されていません');
@@ -2080,7 +2080,7 @@ function renderStep03Choices() {
     return;
   }
 
-    container.innerHTML = step03Patterns.map(p => `
+      container.innerHTML = step03Patterns.map(p => `
     <div class="choice-card" id="choice_${p.num}" onclick="selectChoice(${p.num})">
       <div class="choice-card-num">パターン ${p.num}</div>
       <div class="choice-card-genre">${p.genre || '（ジャンル不明）'}</div>
@@ -2091,10 +2091,8 @@ function renderStep03Choices() {
       ${p.connection ? `<div class="choice-card-reason">接続: ${p.connection}</div>` : ''}
       ${p.reason ? `<div class="choice-card-reason">残した理由: ${p.reason}</div>` : ''}
     </div>`).join('');
-
-
-  container.innerHTML = html;
 }
+
 
 let selectedChoiceNum = null;
 
@@ -2977,7 +2975,7 @@ function executeTrackerSend() {
 function copyElementText(id) {
   const el = document.getElementById(id);
   const text = el ? el.textContent : '';
-  navigator.clipboard.writeText(text).then(() => showCopyFlash(id+'_flash')).catch(() => { fallbackCopy(text); showCopyFlash(id+'_flash'); });
+  doCopy(text, id + '_flash');
 }
 
 function countChars(textareaId, counterId) {
