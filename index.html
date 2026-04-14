@@ -2492,53 +2492,44 @@ function sendNGToStep07() {
 }
 
 // ===== コピー =====
-function copyPrompt(id) {
+async function copyPrompt(id) {
   const el = document.getElementById(id);
   const text = el ? el.textContent : '';
   try {
-    fallbackCopy(text);
+    await navigator.clipboard.writeText(text);
     showCopyFlash(id + '_flash');
   } catch(e) {
-    navigator.clipboard.writeText(text).then(() => {
-      showCopyFlash(id + '_flash');
-    });
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.opacity = '0.01';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopyFlash(id + '_flash');
   }
 }
 
-
-function copyText(id) {
+async function copyText(id) {
   const el = document.getElementById(id);
   const text = el ? (el.value || el.textContent) : '';
   try {
-    fallbackCopy(text);
+    await navigator.clipboard.writeText(text);
     showCopyFlash(id + '_flash');
   } catch(e) {
-    navigator.clipboard.writeText(text).then(() => {
-      showCopyFlash(id + '_flash');
-    });
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.opacity = '0.01';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopyFlash(id + '_flash');
   }
-}
-
-
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.top = '0';
-  ta.style.left = '0';
-  ta.style.opacity = '0.01';
-  ta.style.fontSize = '16px';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  const range = document.createRange();
-  range.selectNodeContents(ta);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-  ta.setSelectionRange(0, 99999);
-  document.execCommand('copy');
-  document.body.removeChild(ta);
 }
 
 
