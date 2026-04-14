@@ -2492,12 +2492,125 @@ function sendNGToStep07() {
 }
 
 // ===== コピー =====
-async function copyPrompt(id) {
-  const el = document.getElementById(id);
-  const text = el ? el.textContent : '';
+// ===== STEPごとの自動追記定義 =====
+function getAppendText(promptId) {
+  const p = KEY_PREFIX;
+  const get = k => localStorage.getItem(p + k) || '';
+
+  const map = {
+    // STEP02: STEP01の出力を追加
+    'step02_prompt': () => {
+      const s1 = get('step01_output');
+      return s1 ? '\n\n-----\n【STEP01 ニュース一覧】\n' + s1 : '';
+    },
+    // STEP05: STEP04の出力を追加
+    'step05_prompt': () => {
+      const s4 = get('step04_output');
+      return s4 ? '\n\n-----\n【STEP04 因果チェーン出力】\n' + s4 : '';
+    },
+    // STEP07: STEP04の出力を追加
+    'step07_prompt_display': () => {
+      const s4 = get('step04_output');
+      return s4 ? '\n\n-----\n【STEP04 因果チェーン出力】\n' + s4 : '';
+    },
+    // STEP09a/b: STEP04＋STEP08銘柄情報を追加
+    'step09_prompt_display': () => {
+      const s4 = get('step04_output');
+      const s8 = get('step08_data');
+      let append = '';
+      if (s4) append += '\n\n-----\n【STEP04 因果チェーン出力】\n' + s4;
+      if (s8) {
+        try {
+          const stocks = JSON.parse(s8);
+          const stockText = stocks.map(s =>
+            `銘柄名:${s.code} 株価(本命):${s.price_main||'未入力'} 株価(夢株):${s.price_dream||'未入力'} 業績:${s.performance||'未入力'}`
+          ).join('\n');
+          append += '\n\n-----\n【STEP08 銘柄情報】\n' + stockText;
+        } catch(e) {}
+      }
+      return append;
+    },
+    // STEP10: STEP09の出力を追加
+    'step10_prompt': () => {
+      const s9 = get('step09_output');
+      return s9 ? '\n\n-----\n【STEP09 記事全文】\n' + s9 : '';
+    },
+    // STEP11a: STEP09＋STEP10を追加
+    'step11a_prompt': () => {
+      const s9 = get('step09_output');
+      const s10 = get('step10_output');
+      let append = '';
+      if (s9) append += '\n\n-----\n【STEP09 元記事】\n' + s9;
+      if (s10) append += '\n\n-----\n【STEP10 コンプラチェック結果】\n' + s10;
+      return append;
+    },
+    // STEP11b: STEP11aの出力を追加
+    'step11b_prompt': () => {
+      const s11a = get('step11a_output');
+      return s11a ? '\n\n-----\n【STEP11a 修正済み記事】\n' + s11a : '';
+    },
+    // STEP13: STEP12の感想を追加
+    'step13_prompt': () => {
+      const s12 = get('step12_feedback');
+      return s12 ? '\n\n-----\n【STEP12 読後感】\n' + s12 : '';
+    },
+    // STEP14: STEP11a＋STEP11b＋STEP13を追加
+    'step14_prompt': () => {
+      const s11a = get('step11a_output');
+      const s11b = get('step11b_output');
+      const s13 = get('step13_output');
+      let append = '';
+      if (s11a) append += '\n\n-----\n【STEP11a 修正済み記事】\n' + s11a;
+      if (s11b) append += '\n\n-----\n【STEP11b 採点結果】\n' + s11b;
+      if (s13) append += '\n\n-----\n【STEP13 感想解析結果】\n' + s13;
+      return append;
+    },
+    // STEP16a/b: STEP15記事＋仮タイトルを追加
+    'step16a_prompt': () => {
+      const s15 = get('step15_article');
+      const s9 = get('step09_output');
+      const titleMatch = s9.match(/仮タイトル[：:]\s*(.+)/);
+      const title = titleMatch ? titleMatch[1].trim() : '';
+      let append = '';
+      if (title) append += '\n\n-----\n【仮タイトル】\n' + title;
+      if (s15) append += '\n\n-----\n【STEP15 確認済み記事】\n' + s15;
+      return append;
+    },
+    'step16b_prompt': () => {
+      const s15 = get('step15_article');
+      const s9 = get('step09_output');
+      const titleMatch = s9.match(/仮タイトル[：:]\s*(.+)/);
+      const title = titleMatch ? titleMatch[1].trim() : '';
+      let append = '';
+      if (title) append += '\n\n-----\n【仮タイトル】\n' + title;
+      if (s15) append += '\n\n-----\n【STEP15 確認済み記事】\n' + s15;
+      return append;
+    },
+    // STEP18a/b: STEP15記事＋STEP16cタイトルを追加
+    'step18a_prompt': () => {
+      const s15 = get('step15_article');
+      const title = get('step16c_final_title');
+      let append = '';
+      if (title) append += '\n\n-----\n【確定タイトル】\n' + title;
+      if (s15) append += '\n\n-----\n【STEP15 リライト済み記事】\n' + s15;
+      return append;
+    },
+    'step18b_prompt': () => {
+      const s15 = get('step15_article');
+      const title = get('step16c_final_title');
+      let append = '';
+      if (title) append += '\n\n-----\n【確定タイトル】\n' + title;
+      if (s15) append += '\n\n-----\n【STEP15 リライト済み記事】\n' + s15;
+      return append;
+    },
+  };
+
+  return map[promptId] ? map[promptId]() : '';
+}
+
+async function doCopy(text, flashId) {
   try {
     await navigator.clipboard.writeText(text);
-    showCopyFlash(id + '_flash');
   } catch(e) {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -2508,29 +2621,30 @@ async function copyPrompt(id) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showCopyFlash(id + '_flash');
   }
+  if (flashId) showCopyFlash(flashId);
+}
+
+async function copyPrompt(id) {
+  const el = document.getElementById(id);
+  const base = el ? el.textContent : '';
+  const append = getAppendText(id);
+  await doCopy(base + append, id + '_flash');
 }
 
 async function copyText(id) {
   const el = document.getElementById(id);
-  const text = el ? (el.value || el.textContent) : '';
-  try {
-    await navigator.clipboard.writeText(text);
-    showCopyFlash(id + '_flash');
-  } catch(e) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.top = '0';
-    ta.style.opacity = '0.01';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showCopyFlash(id + '_flash');
-  }
+  const base = el ? (el.value || el.textContent) : '';
+  const append = getAppendText(id);
+  await doCopy(base + append, id + '_flash');
 }
+
+function copyElementText(id) {
+  const el = document.getElementById(id);
+  const text = el ? el.textContent : '';
+  doCopy(text, id + '_flash');
+}
+
 
 
 function showCopyFlash(id) {
@@ -2567,7 +2681,7 @@ function closeModal() {
 const PROMPT_09A = `あなたは「桶屋理論」専門の金融ストーリーテラーです。
 
 【桶屋理論の定義】
-一見無関係なニュースが迂回した因果連鎖を経て市場に影響する構造。
+一見無関係なニュースが迂回した因果連鎖を経市場に影響する構造。
 この「迂回の意外性」が記事の最大の価値。
 
 【最重要ルール】
