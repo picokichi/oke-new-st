@@ -2495,24 +2495,30 @@ function sendNGToStep07() {
 function copyPrompt(id) {
   const el = document.getElementById(id);
   const text = el ? el.textContent : '';
-  navigator.clipboard.writeText(text).then(() => {
-    showCopyFlash(id + '_flash');
-  }).catch(() => {
+  try {
     fallbackCopy(text);
     showCopyFlash(id + '_flash');
-  });
+  } catch(e) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopyFlash(id + '_flash');
+    });
+  }
 }
+
 
 function copyText(id) {
   const el = document.getElementById(id);
   const text = el ? (el.value || el.textContent) : '';
-  navigator.clipboard.writeText(text).then(() => {
-    showCopyFlash(id + '_flash');
-  }).catch(() => {
+  try {
     fallbackCopy(text);
     showCopyFlash(id + '_flash');
-  });
+  } catch(e) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopyFlash(id + '_flash');
+    });
+  }
 }
+
 
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
