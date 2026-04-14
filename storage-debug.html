@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ストレージ管理 | 桶屋ストーリーAI</title>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #e8c547;
+    --accent2: #5b8dee;
+    --danger: #e85447;
+    --success: #47e8a0;
+    --warn: #e8943a;
+    --text: #e8e8f0;
+    --text2: #888899;
+    --text3: #555566;
+    --font-mono: 'Courier New', monospace;
+  }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(--bg);
+color: var(--text);
+font-family: ‘Hiragino Kaku Gothic ProN’, ‘Noto Sans JP’, sans-serif;
+font-size: 14px;
+min-height: 100vh;
+padding-bottom: 40px;
+}
+
+/* ナビゲーション */
+.nav {
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+padding: 12px 16px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+position: sticky;
+top: 0;
+z-index: 100;
+}
+.nav-title {
+font-size: 13px;
+color: var(--text2);
+letter-spacing: 0.05em;
+}
+.nav-links {
+display: flex;
+gap: 8px;
+}
+.nav-btn {
+background: var(--surface2);
+border: 1px solid var(--border);
+color: var(--text2);
+padding: 6px 12px;
+border-radius: 6px;
+font-size: 12px;
+cursor: pointer;
+text-decoration: none;
+display: inline-block;
+transition: all 0.2s;
+}
+.nav-btn:hover {
+border-color: var(--accent);
+color: var(--accent);
+}
+
+.container {
+max-width: 680px;
+margin: 0 auto;
+padding: 20px 16px;
+}
+
+/* ヘッダー */
+.page-header {
+margin-bottom: 24px;
+}
+.page-title {
+font-size: 20px;
+font-weight: 700;
+color: var(--text);
+margin-bottom: 4px;
+}
+.page-sub {
+font-size: 12px;
+color: var(--text3);
+font-family: var(--font-mono);
+}
+
+/* メイン使用量カード */
+.main-card {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 20px;
+margin-bottom: 16px;
+}
+.main-card-title {
+font-size: 11px;
+color: var(--text3);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 16px;
+font-family: var(--font-mono);
+}
+
+/* 使用量メーター */
+.meter-wrap {
+margin-bottom: 20px;
+}
+.meter-label {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+margin-bottom: 8px;
+}
+.meter-usage {
+font-size: 28px;
+font-weight: 700;
+font-family: var(--font-mono);
+color: var(--text);
+}
+.meter-limit {
+font-size: 13px;
+color: var(--text2);
+font-family: var(--font-mono);
+}
+.meter-bar-bg {
+background: var(--surface2);
+border-radius: 4px;
+height: 12px;
+overflow: hidden;
+margin-bottom: 6px;
+border: 1px solid var(--border);
+}
+.meter-bar {
+height: 100%;
+border-radius: 4px;
+transition: width 0.6s ease;
+background: var(--success);
+}
+.meter-bar.warn { background: var(--warn); }
+.meter-bar.danger { background: var(--danger); }
+
+.meter-blocks {
+font-family: var(--font-mono);
+font-size: 13px;
+color: var(--text2);
+letter-spacing: 2px;
+}
+.meter-pct {
+font-size: 11px;
+color: var(--text3);
+margin-top: 4px;
+font-family: var(--font-mono);
+}
+
+/* ステータスバッジ */
+.status-badge {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+padding: 6px 12px;
+border-radius: 20px;
+font-size: 12px;
+font-weight: 600;
+margin-top: 12px;
+}
+.status-badge.ok { background: rgba(71,232,160,0.12); color: var(--success); border: 1px solid rgba(71,232,160,0.3); }
+.status-badge.warn { background: rgba(232,148,58,0.12); color: var(--warn); border: 1px solid rgba(232,148,58,0.3); }
+.status-badge.danger { background: rgba(232,84,71,0.12); color: var(--danger); border: 1px solid rgba(232,84,71,0.3); }
+
+/* ブラウザ推定値 */
+.estimate-row {
+border-top: 1px solid var(--border);
+margin-top: 16px;
+padding-top: 16px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.estimate-label {
+font-size: 11px;
+color: var(--text3);
+}
+.estimate-val {
+font-family: var(--font-mono);
+font-size: 12px;
+color: var(--text2);
+}
+
+/* キー別内訳 */
+.section-title {
+font-size: 11px;
+color: var(--text3);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 10px;
+font-family: var(--font-mono);
+}
+.key-list {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 12px;
+overflow: hidden;
+margin-bottom: 16px;
+}
+.key-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 12px 16px;
+border-bottom: 1px solid var(--border);
+transition: background 0.15s;
+}
+.key-item:last-child { border-bottom: none; }
+.key-item:hover { background: var(--surface2); }
+
+.key-name {
+flex: 1;
+font-family: var(--font-mono);
+font-size: 12px;
+color: var(--text);
+word-break: break-all;
+min-width: 0;
+}
+.key-tag {
+font-size: 10px;
+padding: 2px 6px;
+border-radius: 4px;
+white-space: nowrap;
+flex-shrink: 0;
+}
+.key-tag.index { background: rgba(91,141,238,0.2); color: var(--accent2); }
+.key-tag.tracker { background: rgba(232,197,71,0.2); color: var(--accent); }
+.key-tag.other { background: rgba(136,136,153,0.2); color: var(--text2); }
+
+.key-size {
+font-family: var(--font-mono);
+font-size: 12px;
+color: var(--text2);
+white-space: nowrap;
+flex-shrink: 0;
+min-width: 60px;
+text-align: right;
+}
+.key-bar-wrap {
+width: 60px;
+height: 4px;
+background: var(--surface2);
+border-radius: 2px;
+overflow: hidden;
+flex-shrink: 0;
+}
+.key-bar {
+height: 100%;
+border-radius: 2px;
+background: var(--accent2);
+}
+.key-del {
+background: none;
+border: 1px solid var(--border);
+color: var(--danger);
+padding: 4px 8px;
+border-radius: 4px;
+font-size: 11px;
+cursor: pointer;
+flex-shrink: 0;
+transition: all 0.2s;
+}
+.key-del:hover { background: rgba(232,84,71,0.1); border-color: var(--danger); }
+
+.empty-state {
+padding: 40px 16px;
+text-align: center;
+color: var(--text3);
+font-size: 13px;
+}
+
+/* 操作ボタン群 */
+.action-section {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 16px;
+margin-bottom: 16px;
+}
+.action-title {
+font-size: 11px;
+color: var(--text3);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 12px;
+font-family: var(--font-mono);
+}
+.action-btns {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.action-btn {
+width: 100%;
+padding: 12px 16px;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+border: 1px solid;
+text-align: left;
+display: flex;
+align-items: center;
+gap: 10px;
+transition: all 0.2s;
+}
+.action-btn .btn-desc {
+font-size: 11px;
+font-weight: 400;
+color: inherit;
+opacity: 0.7;
+margin-left: auto;
+}
+.btn-warn {
+background: rgba(232,148,58,0.08);
+border-color: rgba(232,148,58,0.3);
+color: var(--warn);
+}
+.btn-warn:hover { background: rgba(232,148,58,0.16); }
+.btn-danger {
+background: rgba(232,84,71,0.08);
+border-color: rgba(232,84,71,0.3);
+color: var(--danger);
+}
+.btn-danger:hover { background: rgba(232,84,71,0.16); }
+.btn-neutral {
+background: var(--surface2);
+border-color: var(--border);
+color: var(--text2);
+}
+.btn-neutral:hover { border-color: var(--text2); color: var(--text); }
+
+/* 更新ボタン */
+.refresh-btn {
+background: none;
+border: 1px solid var(--border);
+color: var(--text2);
+padding: 6px 12px;
+border-radius: 6px;
+font-size: 12px;
+cursor: pointer;
+transition: all 0.2s;
+}
+.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ログ */
+.log-area {
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 12px;
+font-family: var(--font-mono);
+font-size: 11px;
+color: var(--text3);
+max-height: 120px;
+overflow-y: auto;
+margin-top: 12px;
+}
+.log-item { margin-bottom: 4px; }
+.log-item.ok { color: var(--success); }
+.log-item.err { color: var(--danger); }
+.log-item.info { color: var(--accent2); }
+
+/* トースト */
+.toast {
+position: fixed;
+bottom: 24px;
+left: 50%;
+transform: translateX(-50%) translateY(80px);
+background: var(--surface2);
+border: 1px solid var(--border);
+color: var(--text);
+padding: 10px 20px;
+border-radius: 8px;
+font-size: 13px;
+transition: transform 0.3s ease;
+z-index: 999;
+white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* モーダル */
+.modal-overlay {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.7);
+z-index: 200;
+align-items: center;
+justify-content: center;
+padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 24px;
+width: 100%;
+max-width: 360px;
+}
+.modal-title {
+font-size: 16px;
+font-weight: 700;
+margin-bottom: 8px;
+}
+.modal-body {
+font-size: 13px;
+color: var(--text2);
+margin-bottom: 20px;
+line-height: 1.6;
+}
+.modal-btns {
+display: flex;
+gap: 8px;
+}
+.modal-btn {
+flex: 1;
+padding: 10px;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+border: 1px solid var(--border);
+transition: all 0.2s;
+}
+.modal-btn.cancel { background: var(--surface2); color: var(--text2); }
+.modal-btn.cancel:hover { color: var(--text); }
+.modal-btn.confirm-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.modal-btn.confirm-warn { background: var(--warn); color: #fff; border-color: var(--warn); }
+
+.divider {
+height: 1px;
+background: var(--border);
+margin: 20px 0;
+}
+</style>
+
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-title">🗄️ ストレージ管理</span>
+  <div class="nav-links">
+    <a href="index.html" class="nav-btn">✍️ 記事生成</a>
+    <a href="tracker.html" class="nav-btn">📊 Tracker</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">ストレージ管理</div>
+    <div class="page-sub">localStorage usage monitor</div>
+  </div>
+
+  <!-- メイン使用量 -->
+
+  <div class="main-card">
+    <div class="main-card-title">localStorage 使用量</div>
+
+<div class="meter-wrap">
+  <div class="meter-label">
+    <span class="meter-usage" id="usageText">-- KB</span>
+    <span class="meter-limit" id="limitText">/ 5 MB</span>
+  </div>
+  <div class="meter-bar-bg">
+    <div class="meter-bar" id="meterBar" style="width:0%"></div>
+  </div>
+  <div class="meter-blocks" id="meterBlocks">--------------------</div>
+  <div class="meter-pct" id="meterPct">計算中...</div>
+</div>
+
+<div id="statusBadge" class="status-badge ok">
+  <span id="statusDot">●</span>
+  <span id="statusText">確認中...</span>
+</div>
+
+<div class="estimate-row">
+  <div>
+    <div class="estimate-label">ブラウザ全体（推定）</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:2px;">キャッシュ等含む概算値</div>
+  </div>
+  <div class="estimate-val" id="browserEstimate">取得中...</div>
+</div>
+
+  </div>
+
+  <!-- キー別内訳 -->
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div class="section-title" style="margin:0">キー別内訳</div>
+    <button class="refresh-btn" onclick="refresh()">↺ 更新</button>
+  </div>
+  <div class="key-list" id="keyList">
+    <div class="empty-state">読み込み中...</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 操作ボタン -->
+
+  <div class="action-section">
+    <div class="action-title">データ操作</div>
+    <div class="action-btns">
+      <button class="action-btn btn-warn" onclick="showModal('index')">
+        🗂️ 記事生成データを削除
+        <span class="btn-desc">index.html の作業データのみ</span>
+      </button>
+      <button class="action-btn btn-warn" onclick="showModal('tracker')">
+        📊 Trackerデータを削除
+        <span class="btn-desc">tracker.html のデータのみ</span>
+      </button>
+      <button class="action-btn btn-danger" onclick="showModal('all')">
+        ⚠️ 全データを削除
+        <span class="btn-desc">完全リセット（復元不可）</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ログ -->
+
+  <div class="section-title">操作ログ</div>
+  <div class="log-area" id="logArea">
+    <div class="log-item info">// ストレージ管理ツール 起動</div>
+  </div>
+
+</div>
+
+<!-- モーダル -->
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">確認</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal()">キャンセル</button>
+      <button class="modal-btn" id="modalConfirm" onclick="executeDelete()">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const LIMIT_BYTES = 5 * 1024 * 1024; // 5MB想定（iPhone Chrome）
+  let deleteTarget = null;
+
+  // キーの分類
+  function classifyKey(key) {
+    if (key.startsWith('oka_index_') || key.startsWith('bucket_index') || key === 'currentStep' || key === 'excludedStocks' || key.startsWith('step')) {
+      return 'index';
+    }
+    if (key.startsWith('oka_tracker_') || key.startsWith('bucket_tracker') || key.startsWith('tracker')) {
+      return 'tracker';
+    }
+    return 'other';
+  }
+
+  function classifyLabel(key) {
+    const c = classifyKey(key);
+    if (c === 'index') return { label: '記事生成', cls: 'index' };
+    if (c === 'tracker') return { label: 'Tracker', cls: 'tracker' };
+    return { label: 'その他', cls: 'other' };
+  }
+
+  // バイト計算
+  function getKeyBytes(key) {
+    const val = localStorage.getItem(key) || '';
+    return (key.length + val.length) * 2; // UTF-16
+  }
+
+  function getTotalBytes() {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      total += getKeyBytes(key);
+    }
+    return total;
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  // ブロック表示
+  function buildBlocks(pct) {
+    const total = 20;
+    const filled = Math.round((pct / 100) * total);
+    const empty = total - filled;
+    let bar = '';
+    for (let i = 0; i < filled; i++) bar += '█';
+    for (let i = 0; i < empty; i++) bar += '░';
+    return bar;
+  }
+
+  // メーター更新
+  function updateMeter(totalBytes) {
+    const pct = Math.min((totalBytes / LIMIT_BYTES) * 100, 100);
+    const meterBar = document.getElementById('meterBar');
+    const usageText = document.getElementById('usageText');
+    const limitText = document.getElementById('limitText');
+    const meterBlocks = document.getElementById('meterBlocks');
+    const meterPct = document.getElementById('meterPct');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+
+    usageText.textContent = formatBytes(totalBytes);
+    limitText.textContent = '/ 5 MB';
+    meterBlocks.textContent = buildBlocks(pct);
+    meterPct.textContent = pct.toFixed(1) + '% 使用中';
+
+    meterBar.style.width = pct + '%';
+    meterBar.className = 'meter-bar';
+
+    statusBadge.className = 'status-badge';
+    if (pct < 60) {
+      statusBadge.classList.add('ok');
+      statusText.textContent = '余裕あり — 問題なし';
+    } else if (pct < 85) {
+      meterBar.classList.add('warn');
+      statusBadge.classList.add('warn');
+      statusText.textContent = '警告 — 不要データの削除を推奨';
+    } else {
+      meterBar.classList.add('danger');
+      statusBadge.classList.add('danger');
+      statusText.textContent = '危険 — すぐに削除してください';
+    }
+  }
+
+  // キー一覧更新
+  function updateKeyList(totalBytes) {
+    const keyList = document.getElementById('keyList');
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      keys.push({ key, bytes: getKeyBytes(key) });
+    }
+    keys.sort((a, b) => b.bytes - a.bytes);
+
+    if (keys.length === 0) {
+      keyList.innerHTML = '<div class="empty-state">データなし</div>';
+      return;
+    }
+
+    keyList.innerHTML = keys.map(({ key, bytes }) => {
+      const pct = totalBytes > 0 ? (bytes / totalBytes) * 100 : 0;
+      const { label, cls } = classifyLabel(key);
+      const displayKey = key.length > 36 ? key.slice(0, 33) + '...' : key;
+      return `
+        <div class="key-item">
+          <div class="key-name" title="${key}">${displayKey}</div>
+          <span class="key-tag ${cls}">${label}</span>
+          <div class="key-bar-wrap">
+            <div class="key-bar" style="width:${Math.max(pct,2)}%"></div>
+          </div>
+          <div class="key-size">${formatBytes(bytes)}</div>
+          <button class="key-del" onclick="deleteSingleKey('${key.replace(/'/g,"\\'")}')">削除</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ブラウザ推定値
+  async function updateEstimate() {
+    const el = document.getElementById('browserEstimate');
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        const est = await navigator.storage.estimate();
+        const used = formatBytes(est.usage || 0);
+        const quota = formatBytes(est.quota || 0);
+        el.textContent = `${used} / ${quota}`;
+      } else {
+        el.textContent = '非対応';
+      }
+    } catch(e) {
+      el.textContent = '取得失敗';
+    }
+  }
+
+  // 全体更新
+  function refresh() {
+    const total = getTotalBytes();
+    updateMeter(total);
+    updateKeyList(total);
+    updateEstimate();
+    addLog('info', '// 更新しました — ' + new Date().toLocaleTimeString('ja-JP'));
+  }
+
+  // 単一キー削除
+  function deleteSingleKey(key) {
+    deleteTarget = { type: 'single', key };
+    document.getElementById('modalTitle').textContent = 'キーを削除';
+    document.getElementById('modalBody').textContent = `「${key}」を削除します。この操作は元に戻せません。`;
+    const btn = document.getElementById('modalConfirm');
+    btn.className = 'modal-btn confirm-warn';
+    btn.textContent = '削除する';
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  // まとめ削除モーダル
+  function showModal(type) {
+    deleteTarget = { type };
+    const titles = { index: '記事生成データを削除', tracker: 'Trackerデータを削除', all: '全データを削除' };
+    const bodies = {
+      index: '記事生成（index.html）に関連するデータをすべて削除します。作業中のデータも失われます。',
+      tracker: 'Tracker（tracker.html）に関連するデータをすべて削除します。予測記録も失われます。',
+      all: 'すべてのデータを完全に削除します。記事生成・Tracker両方のデータが失われます。この操作は元に戻せません。'
+    };
+    document.getElementById('modalTitle').textContent = titles[type];
+    document.getElementById('modalBody').textContent = bodies[type];
+    const btn = document.getElementById('modalConfirm');
+    btn.className = type === 'all' ? 'modal-btn confirm-danger' : 'modal-btn confirm-warn';
+    btn.textContent = '削除する';
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    deleteTarget = null;
+  }
+
+  function executeDelete() {
+    closeModal();
+    if (!deleteTarget) return;
+
+    if (deleteTarget.type === 'single') {
+      localStorage.removeItem(deleteTarget.key);
+      addLog('err', `// 削除: ${deleteTarget.key}`);
+      showToast('削除しました');
+
+    } else if (deleteTarget.type === 'all') {
+      const count = localStorage.length;
+      localStorage.clear();
+      addLog('err', `// 全削除: ${count}件`);
+      showToast('全データを削除しました');
+
+    } else {
+      // index or tracker
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+      let removed = 0;
+      keys.forEach(key => {
+        if (classifyKey(key) === deleteTarget.type) {
+          localStorage.removeItem(key);
+          removed++;
+        }
+      });
+      addLog('err', `// ${deleteTarget.type}データ削除: ${removed}件`);
+      showToast(`${removed}件削除しました`);
+    }
+
+    setTimeout(refresh, 200);
+  }
+
+  // ログ
+  function addLog(type, msg) {
+    const log = document.getElementById('logArea');
+    const item = document.createElement('div');
+    item.className = `log-item ${type}`;
+    item.textContent = new Date().toLocaleTimeString('ja-JP') + ' ' + msg;
+    log.appendChild(item);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // トースト
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // 初期化
+  refresh();
+</script>
+
+</body>
+</html>
