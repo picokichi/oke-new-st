@@ -519,7 +519,7 @@ border: 1px solid var(--border);
 cursor: pointer;
 transition: all 0.2s;
 }
-.toggle input:checked + .toggle-track { background: var(--success); border-color: var(--success); }
+.toggle input:checked + .toggle-track { background: var(--danger); border-color: var(--danger); }
 .toggle-track::after {
 content: ‘’;
 position: absolute;
@@ -2258,6 +2258,7 @@ function updateStep07Prompt() {
     "銘柄名": "",
     "コード": "",
     "市場": "JP or US",
+    "役割": "本命 or 夢株",
     "株価": "Claude取得値 or 要確認",
     "株価取得日": "",
     "上場確認": "済 or 要確認",
@@ -2271,7 +2272,12 @@ function updateStep07Prompt() {
 
 【記入ルール】
 ・Claudeが記入する項目
-　→ 銘柄名、コード、市場、株価、上場確認、テーマ適合理由、特徴強み、ポジション、時間軸
+　→ 銘柄名、コード、市場、役割、株価、上場確認、テーマ適合理由、特徴強み、ポジション、時間軸
+
+【役割の判定基準】
+・本命：因果の恩恵を最も直接受ける銘柄（株価条件を問わない・上位1〜3社）
+・夢株：同テーマで恩恵を受けつつ株価がJP1,000円未満／US$10未満の銘柄
+・本命と夢株は重複不可・必ず両方を含めること
 
 ・人間が記入する項目（空欄で出力）
 　→ 株価取得日、業績概況
@@ -2369,10 +2375,17 @@ function renderStep08() {
           <span class="stock-card-code">${s['コード'] || '-'}</span>
           <span class="stock-market-badge ${market === 'US' ? 'badge-us' : 'badge-jp'}">${market}</span>
         </div>
-        <div class="info-box" style="font-size:11px;margin-bottom:12px;">
-          ポジション: ${s['ポジション'] || '-'} / 時間軸: ${s['時間軸'] || '-'}<br>
+                <div class="info-box" style="font-size:11px;margin-bottom:12px;">
+          役割: <strong>${s['役割'] || '-'}</strong> / ポジション: ${s['ポジション'] || '-'} / 時間軸: ${s['時間軸'] || '-'}<br>
           ${s['テーマ適合理由'] || ''}
         </div>
+        <div class="form-group">
+          <label class="form-label">証券コード（修正可）</label>
+          <input class="form-input" type="text" id="stock_${i}_code"
+            value="${s['コード'] || ''}"
+            oninput="updateStockData(${i}, 'code', this.value)">
+        </div>
+
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">株価（本命）<span class="required">*</span></label>
@@ -2396,15 +2409,16 @@ function renderStep08() {
             value="${s.performance || ''}"
             oninput="updateStockData(${i}, 'performance', this.value)">
         </div>
-        <div class="toggle-wrap">
+                <div class="toggle-wrap">
           <div>
             <div class="toggle-label">上場確認</div>
+            <div class="toggle-sub" id="stock_${i}_listed_label">${s.listed ? '上場不可' : '確認済'}</div>
           </div>
           <label class="toggle">
             <input type="checkbox" id="stock_${i}_listed"
               ${s.listed ? 'checked' : ''}
-              onchange="updateStockData(${i}, 'listed', this.checked); checkAllListed()">
-            <div class="toggle-track"></div>
+              onchange="updateStockData(${i}, 'listed', this.checked); checkAllListed(); updateListedLabel(${i})">
+            <div class="toggle-track" id="stock_${i}_listed_track"></div>
           </label>
         </div>
       </div>`;
@@ -2432,7 +2446,14 @@ function updateStockData(index, field, value) {
   checkRecommendVersion();
 }
 
+function updateListedLabel(i) {
+  const el = document.getElementById('stock_' + i + '_listed');
+  const label = document.getElementById('stock_' + i + '_listed_label');
+  if (el && label) label.textContent = el.checked ? '上場不可' : '確認済';
+}
+
 function checkRecommendVersion() {
+
   const stocks = state.step08Data;
   if (!stocks.length) return;
 
