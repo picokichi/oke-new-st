@@ -790,14 +790,13 @@ margin: 20px 0;
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
-    // モーダルボタン
-  document.getElementById('modalCancel').addEventListener('click', closeModal);
-  document.getElementById('modalConfirm').addEventListener('click', executeDelete);
+      // 初期化
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalConfirm').addEventListener('click', executeDelete);
+    refresh();
+  });
 
-  // 初期化
-  refresh();
-
-  refresh();
 </script>
 
 </body>
