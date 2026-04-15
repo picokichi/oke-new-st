@@ -548,8 +548,9 @@ margin: 20px 0;
     <div class="modal-title" id="modalTitle">確認</div>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeModal()">キャンセル</button>
-      <button class="modal-btn" id="modalConfirm" onclick="executeDelete()">削除する</button>
+            <button class="modal-btn cancel" id="modalCancel">キャンセル</button>
+      <button class="modal-btn" id="modalConfirm">削除する</button>
+
     </div>
   </div>
 </div>
@@ -789,7 +790,13 @@ margin: 20px 0;
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
+    // モーダルボタン
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+  document.getElementById('modalConfirm').addEventListener('click', executeDelete);
+
   // 初期化
+  refresh();
+
   refresh();
 </script>
 
