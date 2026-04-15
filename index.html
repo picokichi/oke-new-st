@@ -1907,7 +1907,7 @@ function saveState() {
 function loadState() {
   const saved = localStorage.getItem(KEY_PREFIX + 'state');
   if (saved) {
-    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+    try { state = { ...state, ...JSON.parse(saved) };   } catch(e) { showToast('JSON解析エラー: ' + e.message); }
   }
 }
 
@@ -2040,7 +2040,7 @@ function parseStep02() {
 
   // JSON形式を試みる
   try {
-    const jsonMatch = text.match(/\[[\s\S]*\]/s);
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       const arr = JSON.parse(jsonMatch[0]);
       step03Patterns = arr.map(item => ({
@@ -2059,7 +2059,7 @@ function parseStep02() {
       renderStep03Choices();
       return;
     }
-  } catch(e) {}
+    } catch(e) { showToast('JSON解析エラー: ' + e.message); }
 
   // フォールバック：テキスト形式を解析
   const blocks = text.split(/\n(?=\d+[\.\)）]|\d+\s)/g).filter(b => b.trim());
@@ -2346,7 +2346,7 @@ function renderStep08() {
         const match = savedData.find(d => d.code === s['コード']);
         return match ? { ...s, ...match } : s;
       });
-    } catch(e) {}
+     } catch(e) { showToast('JSON解析エラー: ' + e.message); }
   }
 
   state.step08Data = stocks;
@@ -2557,7 +2557,7 @@ function getAppendText(promptId) {
             `銘柄名:${s.code} 株価(本命):${s.price_main||'未入力'} 株価(夢株):${s.price_dream||'未入力'} 業績:${s.performance||'未入力'}`
           ).join('\n');
           append += '\n\n-----\n【STEP08 銘柄情報】\n' + stockText;
-        } catch(e) {}
+         } catch(e) { showToast('JSON解析エラー: ' + e.message); }
       }
       return append;
     },
