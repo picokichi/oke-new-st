@@ -548,8 +548,8 @@ margin: 20px 0;
     <div class="modal-title" id="modalTitle">確認</div>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-btns">
-            <button class="modal-btn cancel" id="modalCancel">キャンセル</button>
-      <button class="modal-btn" id="modalConfirm">削除する</button>
+                  <button class="modal-btn cancel" id="modalCancel">キャンセル</button>
+      <button class="modal-btn confirm-danger" id="modalConfirm">削除する</button>
 
     </div>
   </div>
@@ -707,13 +707,10 @@ margin: 20px 0;
   }
 
   // 単一キー削除
-  function deleteSingleKey(key) {
+   function deleteSingleKey(key) {
     deleteTarget = { type: 'single', key };
     document.getElementById('modalTitle').textContent = 'キーを削除';
     document.getElementById('modalBody').textContent = `「${key}」を削除します。この操作は元に戻せません。`;
-    const btn = document.getElementById('modalConfirm');
-    btn.className = 'modal-btn confirm-warn';
-    btn.textContent = '削除する';
     document.getElementById('modalOverlay').classList.add('show');
   }
 
@@ -728,9 +725,6 @@ margin: 20px 0;
     };
     document.getElementById('modalTitle').textContent = titles[type];
     document.getElementById('modalBody').textContent = bodies[type];
-    const btn = document.getElementById('modalConfirm');
-    btn.className = type === 'all' ? 'modal-btn confirm-danger' : 'modal-btn confirm-warn';
-    btn.textContent = '削除する';
     document.getElementById('modalOverlay').classList.add('show');
   }
 
