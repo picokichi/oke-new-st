@@ -772,62 +772,254 @@ border-radius: 5px;
 
 <main class="main" id="mainContent">
 
-  <!-- ===== STEP01 ===== -->
+    <!-- ===== STEP01 ===== -->
 
   <div class="step-panel" id="step01">
     <div class="step-header">
       <div class="step-header-top">
         <span class="step-num-badge">STEP 01</span>
         <h1 class="step-title">ニュース収集</h1>
-        <span class="step-owner-badge owner-perplexity">Perplexity</span>
+        <span class="step-owner-badge owner-chatgpt">ChatGPT</span>
       </div>
-      <p class="step-desc">Perplexityで最新ニュースを収集し、URLと見出しを取得します。</p>
+      <p class="step-desc">ChatGPT（browsing）で条件A・条件B別にニュースを収集します。合計最大40件＋手動追加最大4件。</p>
     </div>
 
 <div class="card">
-  <div class="card-title">使用プロンプト</div>
-  <div class="prompt-note">以下をPerplexityに貼り付けてください</div>
-  <div class="prompt-box" id="step01_prompt">最新のニュースを収集してください。
-【収集条件A】入力時点から24時間以内のニュース20件
-【収集条件B】3〜7日前のニュース20件
-条件A・条件B それぞれ20件ずつ、合計40件出力すること
+  <div class="card-title">条件A プロンプト（48時間以内）</div>
+  <div class="prompt-note">以下をChatGPTに貼り付けてください</div>
+  <div class="prompt-box" id="step01_prompt_a">あなたはニュース収集アシスタントです。
+以下の条件をすべて満たすニュースを20件収集してください。
+
+【期間条件】
+・今日の日付基準で48時間以内に発表された記事のみ
+・48時間より前の記事は禁止
+・各記事について発表日を必ず確認すること
+・発表日が確認できない記事は除外すること
+・発表日はYYYY-MM-DD形式で記載すること
+
 【優先ジャンル】
 ・地政学・安全保障
 ・金融政策・中央銀行
 ・産業・テクノロジー
-・規制・政策（国内外）
+・規制・政策
 ・企業動向・M&A
-【優先度低いジャンル】
-・社会・人口動態
-・気象・災害（気候政策絡みは除く）
+
 【除外ジャンル】
 ・芸能・スポーツ
-・個別企業の決算発表のみのニュース
+・個別企業の決算発表のみの記事
+・事故・事件・災害のみの記事
+・生活情報・エンタメ・ランキング記事
+
+【ソース分散条件】
+・同一ソースは最大3件まで
+・以下の日本語媒体を優先して含めること
+　時事通信（jiji.com）・共同通信・NHK（nhk.or.jp/news）・ロイター日本語版（jp.reuters.com）
+・以下の英語媒体を優先してバランスよく含めること
+　Reuters・Bloomberg・AP・Financial Times・Wall Street Journal・BBC
+・英語媒体は上記6媒体から各2〜3件ずつ含めること
+・Reutersだけに偏らないこと
+
+【URL条件】
+・URLは必ず個別記事ページの完全URLをそのまま記載すること
+・サイトマップURL・トップページURL・カテゴリページURLは禁止
+・短縮URLは禁止
+・URLが個別記事か確認できない場合は除外すること
+・URLが取得できない記事は除外すること
+
+【出力前の自己チェック】
+出力前に必ず以下を確認すること
+1. すべての記事が48時間以内か
+2. 発表日が具体的な日付になっているか
+3. URLが個別記事URLか
+4. Reuters偏重になっていないか
+5. 日本語媒体が1件以上含まれているか
+6. Bloomberg・AP・FT・WSJ・BBCが含まれているか
+7. 同一ソース3件超になっていないか
+
 【出力形式】
-条件A（24時間以内）
-	1.	見出し
-URL
-条件B（3〜7日前）
-	1.	見出し
-URL
-【共通条件】
-・日本語・英語どちらも可
-・要約不要（見出しとURLのみ）
-・選別しない・重複OK・質より量
-・ジャンルは優先度に従い配分すること</div>
-<div class="btn-row">
-<button class="btn btn-secondary" onclick="copyPrompt('step01_prompt')">コピー</button>
-<span class="copy-flash" id="step01_prompt_flash">コピーしました</span>
-</div>
+1.
+見出し:
+URL:
+ソース名:
+発表日:</div>
+  <div class="btn-row">
+    <button class="btn btn-chatgpt" onclick="copyPrompt('step01_prompt_a')">コピー</button>
+    <span class="copy-flash" id="step01_prompt_a_flash">コピーしました</span>
+  </div>
 </div>
 
 <div class="card">
-  <div class="card-title">出力を貼り付け</div>
-  <textarea class="paste-area" id="step01_output" placeholder="PerplexityのURLと見出し一覧をここに貼り付けてください..." rows="10" oninput="autoSave('step01_output')"></textarea>
-  <div class="btn-row right">
-    <button class="btn btn-primary" onclick="completeStep(1)">完了 - STEP02へ</button>
+  <div class="card-title">条件A 出力を貼り付け（最大20件）</div>
+  <textarea class="paste-area" id="step01_output_a" placeholder="ChatGPTの条件A出力をここに貼り付けてください..." rows="10" oninput="autoSave('step01_output_a')"></textarea>
+</div>
+
+<div class="card">
+  <div class="card-title">条件A 手動追加（最大2件）</div>
+  <div id="step01_manual_a">
+    <div class="manual-news-row" id="step01_manual_a_1">
+      <div class="form-group">
+        <label class="form-label">見出し</label>
+        <input class="form-input" type="text" id="step01_ma1_title" placeholder="見出しを入力" oninput="autoSave('step01_ma1_title')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input class="form-input" type="url" id="step01_ma1_url" placeholder="https://..." oninput="autoSave('step01_ma1_url')">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">ソース名</label>
+          <input class="form-input" type="text" id="step01_ma1_source" placeholder="Reuters等" oninput="autoSave('step01_ma1_source')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">発表日</label>
+          <input class="form-input" type="text" id="step01_ma1_date" placeholder="YYYY-MM-DD" oninput="autoSave('step01_ma1_date')">
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="manual-news-row" id="step01_manual_a_2">
+      <div class="form-group">
+        <label class="form-label">見出し</label>
+        <input class="form-input" type="text" id="step01_ma2_title" placeholder="見出しを入力" oninput="autoSave('step01_ma2_title')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input class="form-input" type="url" id="step01_ma2_url" placeholder="https://..." oninput="autoSave('step01_ma2_url')">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">ソース名</label>
+          <input class="form-input" type="text" id="step01_ma2_source" placeholder="Reuters等" oninput="autoSave('step01_ma2_source')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">発表日</label>
+          <input class="form-input" type="text" id="step01_ma2_date" placeholder="YYYY-MM-DD" oninput="autoSave('step01_ma2_date')">
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<div class="card">
+  <div class="card-title">条件B プロンプト（5日前〜1ヶ月以内）</div>
+  <div class="prompt-note">以下をChatGPTに貼り付けてください</div>
+  <div class="prompt-box" id="step01_prompt_b">あなたはニュース収集アシスタントです。
+以下の条件をすべて満たすニュースを20件収集してください。
+
+【期間条件】
+・今日の日付基準で5日前〜1ヶ月以内に発表された記事のみ
+・5日以内の記事は禁止
+・1ヶ月より前の記事は禁止
+・各記事について発表日を必ず確認すること
+・発表日が確認できない記事は除外すること
+・発表日はYYYY-MM-DD形式で記載すること
+
+【優先ジャンル】
+・地政学・安全保障
+・金融政策・中央銀行
+・産業・テクノロジー
+・規制・政策
+・企業動向・M&A
+
+【除外ジャンル】
+・芸能・スポーツ
+・個別企業の決算発表のみの記事
+・事故・事件・災害のみの記事
+・生活情報・エンタメ・ランキング記事
+
+【ソース分散条件】
+・同一ソースは最大3件まで
+・以下の日本語媒体を優先して含めること
+　時事通信（jiji.com）・共同通信・NHK（nhk.or.jp/news）・ロイター日本語版（jp.reuters.com）
+・以下の英語媒体を優先してバランスよく含めること
+　Reuters・Bloomberg・AP・Financial Times・Wall Street Journal・BBC
+・英語媒体は上記6媒体から各2〜3件ずつ含めること
+・Reutersだけに偏らないこと
+
+【URL条件】
+・URLは必ず個別記事ページの完全URLをそのまま記載すること
+・サイトマップURL・トップページURL・カテゴリページURLは禁止
+・短縮URLは禁止
+・URLが個別記事か確認できない場合は除外すること
+・URLが取得できない記事は除外すること
+
+【出力前の自己チェック】
+出力前に必ず以下を確認すること
+1. すべての記事が5日前〜1ヶ月以内か
+2. 発表日が具体的な日付になっているか
+3. URLが個別記事URLか
+4. Reuters偏重になっていないか
+5. 日本語媒体が1件以上含まれているか
+6. Bloomberg・AP・FT・WSJ・BBCが含まれているか
+7. 同一ソース3件超になっていないか
+
+【出力形式】
+1.
+見出し:
+URL:
+ソース名:
+発表日:</div>
+  <div class="btn-row">
+    <button class="btn btn-chatgpt" onclick="copyPrompt('step01_prompt_b')">コピー</button>
+    <span class="copy-flash" id="step01_prompt_b_flash">コピーしました</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">条件B 出力を貼り付け（最大20件）</div>
+  <textarea class="paste-area" id="step01_output_b" placeholder="ChatGPTの条件B出力をここに貼り付けてください..." rows="10" oninput="autoSave('step01_output_b')"></textarea>
+</div>
+
+<div class="card">
+  <div class="card-title">条件B 手動追加（最大2件）</div>
+  <div id="step01_manual_b">
+    <div class="manual-news-row" id="step01_manual_b_1">
+      <div class="form-group">
+        <label class="form-label">見出し</label>
+        <input class="form-input" type="text" id="step01_mb1_title" placeholder="見出しを入力" oninput="autoSave('step01_mb1_title')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input class="form-input" type="url" id="step01_mb1_url" placeholder="https://..." oninput="autoSave('step01_mb1_url')">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">ソース名</label>
+          <input class="form-input" type="text" id="step01_mb1_source" placeholder="Reuters等" oninput="autoSave('step01_mb1_source')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">発表日</label>
+          <input class="form-input" type="text" id="step01_mb1_date" placeholder="YYYY-MM-DD" oninput="autoSave('step01_mb1_date')">
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="manual-news-row" id="step01_manual_b_2">
+      <div class="form-group">
+        <label class="form-label">見出し</label>
+        <input class="form-input" type="text" id="step01_mb2_title" placeholder="見出しを入力" oninput="autoSave('step01_mb2_title')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input class="form-input" type="url" id="step01_mb2_url" placeholder="https://..." oninput="autoSave('step01_mb2_url')">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">ソース名</label>
+          <input class="form-input" type="text" id="step01_mb2_source" placeholder="Reuters等" oninput="autoSave('step01_mb2_source')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">発表日</label>
+          <input class="form-input" type="text" id="step01_mb2_date" placeholder="YYYY-MM-DD" oninput="autoSave('step01_mb2_date')">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="btn-row right">
+    <button class="btn btn-primary" onclick="completeStep01()">完了 - STEP02へ</button>
+  </div>
 
   </div>
 
@@ -1886,7 +2078,7 @@ C（予言型）：桶屋理論の因果構造を1行で示唆する・「かも
 <script>
 // ===== STEPメタデータ =====
 const STEPS = [
-  { num: 1,  id: 'step01', name: 'ニュース収集',       owner: 'perplexity', group: '収集・選別' },
+  { num: 1,  id: 'step01', name: 'ニュース収集',       owner: 'chatgpt',    group: '収集・選別' },
   { num: 2,  id: 'step02', name: '荒選別',              owner: 'chatgpt',    group: '収集・選別' },
   { num: 3,  id: 'step03', name: '組み合わせ選択',      owner: 'human',      group: '収集・選別' },
   { num: 4,  id: 'step04', name: '因果関係構築',        owner: 'claude',     group: '因果構築' },
@@ -1960,7 +2152,13 @@ function init() {
 }
 
 function loadAllSavedText() {
-    const ids = ['step01_output','step02_output','step04_output','step05_output',
+      const ids = ['step01_output_a','step01_output_b',
+    'step01_ma1_title','step01_ma1_url','step01_ma1_source','step01_ma1_date',
+    'step01_ma2_title','step01_ma2_url','step01_ma2_source','step01_ma2_date',
+    'step01_mb1_title','step01_mb1_url','step01_mb1_source','step01_mb1_date',
+    'step01_mb2_title','step01_mb2_url','step01_mb2_source','step01_mb2_date',
+    'step02_output','step04_output','step05_output',
+
     'step07_output','step09_output','step10_output','step11a_output',
     'step11b_output','step12_feedback','step13_output','step14_output',
     'step15_article','step16a_output','step16b_output','step16c_final_title',
@@ -2038,7 +2236,7 @@ function goToStep(num, save = true) {
   if (num === 24) renderStep19();
 }
 
-function completeStep(stepNum) {
+function completeStep01() {   const get = id => localStorage.getItem(KEY_PREFIX + id) || '';   let combined = '';    const outA = get('step01_output_a');   if (outA) combined += '【条件A：48時間以内】\n' + outA + '\n\n';    const manualA = [     { t: get('step01_ma1_title'), u: get('step01_ma1_url'), s: get('step01_ma1_source'), d: get('step01_ma1_date') },     { t: get('step01_ma2_title'), u: get('step01_ma2_url'), s: get('step01_ma2_source'), d: get('step01_ma2_date') },   ].filter(m => m.t || m.u);   if (manualA.length) {     combined += '【条件A 手動追加】\n';     manualA.forEach((m, i) => {       combined += `${i+1}.\n見出し: ${m.t}\nURL: ${m.u}\nソース名: ${m.s}\n発表日: ${m.d}\n\n`;     });   }    const outB = get('step01_output_b');   if (outB) combined += '【条件B：5日前〜1ヶ月以内】\n' + outB + '\n\n';    const manualB = [     { t: get('step01_mb1_title'), u: get('step01_mb1_url'), s: get('step01_mb1_source'), d: get('step01_mb1_date') },     { t: get('step01_mb2_title'), u: get('step01_mb2_url'), s: get('step01_mb2_source'), d: get('step01_mb2_date') },   ].filter(m => m.t || m.u);   if (manualB.length) {     combined += '【条件B 手動追加】\n';     manualB.forEach((m, i) => {       combined += `${i+1}.\n見出し: ${m.t}\nURL: ${m.u}\nソース名: ${m.s}\n発表日: ${m.d}\n\n`;     });   }    if (!combined.trim()) {     showToast('条件AまたはBの出力を貼り付けてください');     return;   }    localStorage.setItem(KEY_PREFIX + 'step01_output', combined.trim());   completeStep(1); }  function completeStep(stepNum) { 
   if (!state.completedSteps.includes(stepNum)) {
     state.completedSteps.push(stepNum);
   }
@@ -3073,7 +3271,7 @@ function countChars(textareaId, counterId) {
 }
 
 // ===== 起動 =====
-function hardReload() {   loadAllSavedText();   const ids = ['step01_output','step02_output','step04_output','step05_output',     'step07_output','step09_output','step10_output','step11a_output',     'step11b_output','step12_feedback','step13_output','step14_output',     'step15_article','step16a_output','step16b_output','step16c_final_title',     'step17_note_url','step18a_output','step18b_output',     'step18c_post','step18c_reply','step19_title','step19_url'];   ids.forEach(id => {     const val = localStorage.getItem(KEY_PREFIX + id);     const el = document.getElementById(id);     if (el) el.value = val || '';   });   showToast('画面を更新しました'); }  window.addEventListener('DOMContentLoaded', init);
+function hardReload() {   loadAllSavedText();   const ids = [     'step01_output_a','step01_output_b',     'step01_ma1_title','step01_ma1_url','step01_ma1_source','step01_ma1_date',     'step01_ma2_title','step01_ma2_url','step01_ma2_source','step01_ma2_date',     'step01_mb1_title','step01_mb1_url','step01_mb1_source','step01_mb1_date',     'step01_mb2_title','step01_mb2_url','step01_mb2_source','step01_mb2_date',     'step02_output','step04_output','step05_output',     'step07_output','step09_output','step10_output','step11a_output',     'step11b_output','step12_feedback','step13_output','step14_output',     'step15_article','step16a_output','step16b_output','step16c_final_title',     'step17_note_url','step18a_output','step18b_output',     'step18c_post','step18c_reply','step19_title','step19_url'   ];   ids.forEach(id => {     const val = localStorage.getItem(KEY_PREFIX + id);     const el = document.getElementById(id);     if (el) el.value = val || '';   });   showToast('画面を更新しました'); }  window.addEventListener('DOMContentLoaded', init);
 </script>
 
 </body>
