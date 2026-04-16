@@ -787,17 +787,34 @@ border-radius: 5px;
 <div class="card">
   <div class="card-title">使用プロンプト</div>
   <div class="prompt-note">以下をPerplexityに貼り付けてください</div>
-  <div class="prompt-box" id="step01_prompt">最新の経済・ビジネス・社会ニュースを20件収集してください。
-
-出力形式：
-・見出し（1行）
-・URL
-
-条件：
-・日本語ニュース優先
-・発生から7日以内
-・URLは必ず含める
-・要約は不要（見出しとURLのみ）</div>
+  <div class="prompt-box" id="step01_prompt">最新のニュースを収集してください。
+【収集条件A】入力時点から24時間以内のニュース20件
+【収集条件B】3〜7日前のニュース20件
+条件A・条件B それぞれ20件ずつ、合計40件出力すること
+【優先ジャンル】
+・地政学・安全保障
+・金融政策・中央銀行
+・産業・テクノロジー
+・規制・政策（国内外）
+・企業動向・M&A
+【優先度低いジャンル】
+・社会・人口動態
+・気象・災害（気候政策絡みは除く）
+【除外ジャンル】
+・芸能・スポーツ
+・個別企業の決算発表のみのニュース
+【出力形式】
+条件A（24時間以内）
+	1.	見出し
+URL
+条件B（3〜7日前）
+	1.	見出し
+URL
+【共通条件】
+・日本語・英語どちらも可
+・要約不要（見出しとURLのみ）
+・選別しない・重複OK・質より量
+・ジャンルは優先度に従い配分すること</div>
 <div class="btn-row">
 <button class="btn btn-secondary" onclick="copyPrompt('step01_prompt')">コピー</button>
 <span class="copy-flash" id="step01_prompt_flash">コピーしました</span>
