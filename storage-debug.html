@@ -547,11 +547,7 @@ margin: 20px 0;
   <div class="modal">
     <div class="modal-title" id="modalTitle">確認</div>
     <div class="modal-body" id="modalBody"></div>
-    <div class="modal-btns">
-                  <button class="modal-btn cancel" id="modalCancel">キャンセル</button>
-      <button class="modal-btn confirm-danger" id="modalConfirm">削除する</button>
-
-    </div>
+    <div class="modal-btns" id="modalBtns"></div>
   </div>
 </div>
 
@@ -714,56 +710,71 @@ margin: 20px 0;
     document.getElementById('modalOverlay').classList.add('show');
   }
 
-  // まとめ削除モーダル
+   function openModal(title, body, onConfirm) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').textContent = body;
+    const btns = document.getElementById('modalBtns');
+    btns.innerHTML = '';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn cancel';
+    cancelBtn.textContent = 'キャンセル';
+    cancelBtn.onclick = closeModal;
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'modal-btn confirm-danger';
+    confirmBtn.textContent = '削除する';
+    confirmBtn.onclick = onConfirm;
+    btns.appendChild(cancelBtn);
+    btns.appendChild(confirmBtn);
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  function deleteSingleKey(key) {
+    openModal(
+      'キーを削除',
+      `「${key}」を削除します。この操作は元に戻せません。`,
+      function() {
+        closeModal();
+        localStorage.removeItem(key);
+        addLog('err', `// 削除: ${key}`);
+        showToast('削除しました');
+        setTimeout(refresh, 200);
+      }
+    );
+  }
+
   function showModal(type) {
-    deleteTarget = { type };
     const titles = { index: '記事生成データを削除', tracker: 'Trackerデータを削除', all: '全データを削除' };
     const bodies = {
       index: '記事生成（index.html）に関連するデータをすべて削除します。作業中のデータも失われます。',
       tracker: 'Tracker（tracker.html）に関連するデータをすべて削除します。予測記録も失われます。',
       all: 'すべてのデータを完全に削除します。記事生成・Tracker両方のデータが失われます。この操作は元に戻せません。'
     };
-    document.getElementById('modalTitle').textContent = titles[type];
-    document.getElementById('modalBody').textContent = bodies[type];
-    document.getElementById('modalOverlay').classList.add('show');
+    openModal(titles[type], bodies[type], function() {
+      closeModal();
+      if (type === 'all') {
+        const count = localStorage.length;
+        localStorage.clear();
+        addLog('err', `// 全削除: ${count}件`);
+        showToast('全データを削除しました');
+      } else {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+        let removed = 0;
+        keys.forEach(k => {
+          if (classifyKey(k) === type) {
+            localStorage.removeItem(k);
+            removed++;
+          }
+        });
+        addLog('err', `// ${type}データ削除: ${removed}件`);
+        showToast(`${removed}件削除しました`);
+      }
+      setTimeout(refresh, 200);
+    });
   }
 
   function closeModal() {
     document.getElementById('modalOverlay').classList.remove('show');
-    deleteTarget = null;
-  }
-
-  function executeDelete() {
-    closeModal();
-    if (!deleteTarget) return;
-
-    if (deleteTarget.type === 'single') {
-      localStorage.removeItem(deleteTarget.key);
-      addLog('err', `// 削除: ${deleteTarget.key}`);
-      showToast('削除しました');
-
-    } else if (deleteTarget.type === 'all') {
-      const count = localStorage.length;
-      localStorage.clear();
-      addLog('err', `// 全削除: ${count}件`);
-      showToast('全データを削除しました');
-
-    } else {
-      // index or tracker
-      const keys = [];
-      for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-      let removed = 0;
-      keys.forEach(key => {
-        if (classifyKey(key) === deleteTarget.type) {
-          localStorage.removeItem(key);
-          removed++;
-        }
-      });
-      addLog('err', `// ${deleteTarget.type}データ削除: ${removed}件`);
-      showToast(`${removed}件削除しました`);
-    }
-
-    setTimeout(refresh, 200);
   }
 
   // ログ
@@ -784,10 +795,8 @@ margin: 20px 0;
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
-      // 初期化
+     // 初期化
   document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('modalCancel').addEventListener('click', closeModal);
-    document.getElementById('modalConfirm').addEventListener('click', executeDelete);
     refresh();
   });
 
