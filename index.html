@@ -742,7 +742,7 @@ border-radius: 5px;
     <div class="topnav-right">
     <a href="tracker.html" class="nav-link">Tracker</a>
     <a href="storage-debug.html" class="nav-link">Storage</a>
-    <button class="nav-link" onclick="location.reload()">↺</button>
+    <button class="nav-link" onclick="hardReload()">↺</button>
   </div>
 </nav>
 
@@ -3056,7 +3056,7 @@ function countChars(textareaId, counterId) {
 }
 
 // ===== 起動 =====
-window.addEventListener('DOMContentLoaded', init);
+function hardReload() {   loadAllSavedText();   const ids = ['step01_output','step02_output','step04_output','step05_output',     'step07_output','step09_output','step10_output','step11a_output',     'step11b_output','step12_feedback','step13_output','step14_output',     'step15_article','step16a_output','step16b_output','step16c_final_title',     'step17_note_url','step18a_output','step18b_output',     'step18c_post','step18c_reply','step19_title','step19_url'];   ids.forEach(id => {     const val = localStorage.getItem(KEY_PREFIX + id);     const el = document.getElementById(id);     if (el) el.value = val || '';   });   showToast('画面を更新しました'); }  window.addEventListener('DOMContentLoaded', init);
 </script>
 
 </body>
