@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>桶屋 Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+–bg: #0d0f14;
+–surface: #141720;
+–surface2: #1c2030;
+–border: #2a2f45;
+–accent: #e8c547;
+–accent2: #4ecdc4;
+–hit: #4ecdc4;
+–miss: #ff6b6b;
+–pending: #888aaa;
+–honmei: #e8c547;
+–yume: #c084fc;
+–text: #e8eaf0;
+–text2: #888aaa;
+–up: #4ecdc4;
+–down: #ff6b6b;
+–flat: #888aaa;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+min-height: 100vh;
+padding-bottom: 60px;
+}
+
+/* ヘッダー */
+header {
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+padding: 14px 16px;
+position: sticky;
+top: 0;
+z-index: 100;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+header h1 {
+font-size: 18px;
+font-weight: 900;
+letter-spacing: 0.05em;
+color: var(–accent);
+}
+
+header .subtitle {
+font-size: 11px;
+color: var(–text2);
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+header .nav-link {
+margin-left: auto;
+font-size: 12px;
+color: var(–text2);
+text-decoration: none;
+border: 1px solid var(–border);
+padding: 4px 10px;
+border-radius: 4px;
+}
+
+/* 統計バー */
+.stats-bar {
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+padding: 14px 16px;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+}
+
+.stat-card {
+background: var(–surface2);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 12px;
+text-align: center;
+}
+
+.stat-label {
+font-size: 10px;
+color: var(–text2);
+margin-bottom: 4px;
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.stat-value {
+font-size: 22px;
+font-weight: 900;
+font-family: ‘JetBrains Mono’, monospace;
+color: var(–accent);
+line-height: 1;
+}
+
+.stat-value.sub {
+font-size: 13px;
+color: var(–text2);
+}
+
+.stat-sub {
+font-size: 10px;
+color: var(–text2);
+margin-top: 3px;
+}
+
+/* バッジ別統計 */
+.badge-stats {
+display: flex;
+gap: 6px;
+padding: 10px 16px;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+}
+
+.badge-stat {
+flex: 1;
+background: var(–surface2);
+border-radius: 6px;
+padding: 8px 10px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.badge-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+.badge-dot.honmei { background: var(–honmei); }
+.badge-dot.yume { background: var(–yume); }
+
+.badge-stat-label { font-size: 11px; color: var(–text2); }
+.badge-stat-val { font-size: 14px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace; margin-left: auto; }
+
+/* タブ */
+.tabs {
+display: flex;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+padding: 0 16px;
+gap: 0;
+}
+
+.tab {
+padding: 10px 16px;
+font-size: 13px;
+color: var(–text2);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: all 0.2s;
+white-space: nowrap;
+}
+
+.tab.active {
+color: var(–accent);
+border-bottom-color: var(–accent);
+font-weight: 700;
+}
+
+/* メインコンテンツ */
+main {
+padding: 12px 16px;
+}
+
+/* 登録ボタン */
+.add-btn {
+width: 100%;
+background: var(–accent);
+color: #0d0f14;
+border: none;
+border-radius: 8px;
+padding: 13px;
+font-size: 14px;
+font-weight: 900;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+cursor: pointer;
+margin-bottom: 12px;
+letter-spacing: 0.05em;
+}
+
+/* 銘柄カード */
+.stock-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+margin-bottom: 10px;
+overflow: hidden;
+}
+
+.stock-card-header {
+padding: 12px 14px;
+display: flex;
+align-items: flex-start;
+gap: 10px;
+cursor: pointer;
+}
+
+.stock-badge {
+font-size: 10px;
+font-weight: 700;
+padding: 2px 7px;
+border-radius: 3px;
+flex-shrink: 0;
+margin-top: 1px;
+}
+
+.stock-badge.honmei { background: var(–honmei); color: #0d0f14; }
+.stock-badge.yume { background: var(–yume); color: #0d0f14; }
+
+.stock-main { flex: 1; min-width: 0; }
+
+.stock-name {
+font-size: 15px;
+font-weight: 700;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.stock-meta {
+font-size: 11px;
+color: var(–text2);
+font-family: ‘JetBrains Mono’, monospace;
+margin-top: 2px;
+}
+
+.stock-direction {
+flex-shrink: 0;
+font-size: 12px;
+font-weight: 700;
+padding: 3px 8px;
+border-radius: 4px;
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.dir-up { background: rgba(78,205,196,0.15); color: var(–up); border: 1px solid rgba(78,205,196,0.3); }
+.dir-down { background: rgba(255,107,107,0.15); color: var(–down); border: 1px solid rgba(255,107,107,0.3); }
+.dir-flat { background: rgba(136,138,170,0.15); color: var(–flat); border: 1px solid rgba(136,138,170,0.3); }
+
+/* 記事タイトル */
+.stock-article {
+padding: 0 14px 10px;
+font-size: 11px;
+color: var(–text2);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.stock-article a { color: var(–accent2); text-decoration: none; }
+
+/* 判定ステップ */
+.judgment-row {
+display: flex;
+gap: 0;
+border-top: 1px solid var(–border);
+}
+
+.judgment-cell {
+flex: 1;
+padding: 10px 8px;
+text-align: center;
+border-right: 1px solid var(–border);
+position: relative;
+}
+
+.judgment-cell:last-child { border-right: none; }
+
+.jc-label {
+font-size: 9px;
+color: var(–text2);
+font-family: ‘JetBrains Mono’, monospace;
+margin-bottom: 4px;
+}
+
+.jc-date {
+font-size: 9px;
+color: var(–text2);
+margin-bottom: 6px;
+}
+
+.jc-result {
+font-size: 18px;
+line-height: 1;
+margin-bottom: 4px;
+}
+
+.jc-price {
+font-size: 10px;
+color: var(–text2);
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.jc-pct {
+font-size: 11px;
+font-weight: 700;
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.pct-up { color: var(–up); }
+.pct-down { color: var(–down); }
+.pct-flat { color: var(–flat); }
+
+.jc-input-btn {
+font-size: 10px;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 4px;
+padding: 3px 8px;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+margin-top: 2px;
+}
+
+.jc-pending {
+font-size: 11px;
+color: var(–text2);
+margin-top: 4px;
+}
+
+/* モーダル */
+.modal-overlay {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.7);
+z-index: 200;
+display: flex;
+align-items: flex-end;
+padding: 16px;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 14px;
+padding: 20px 18px;
+width: 100%;
+max-width: 480px;
+margin: 0 auto;
+max-height: 85vh;
+overflow-y: auto;
+}
+
+.modal h2 {
+font-size: 16px;
+font-weight: 900;
+margin-bottom: 16px;
+color: var(–accent);
+}
+
+.form-group {
+margin-bottom: 14px;
+}
+
+.form-label {
+font-size: 11px;
+color: var(–text2);
+margin-bottom: 5px;
+display: block;
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.form-input, .form-select {
+width: 100%;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 6px;
+padding: 10px 12px;
+font-size: 14px;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+-webkit-appearance: none;
+}
+
+.form-input:focus, .form-select:focus {
+outline: none;
+border-color: var(–accent);
+}
+
+.form-row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+
+.dir-btns {
+display: flex;
+gap: 8px;
+}
+
+.dir-btn {
+flex: 1;
+padding: 10px 4px;
+border: 1px solid var(–border);
+border-radius: 6px;
+background: var(–surface2);
+color: var(–text2);
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+text-align: center;
+transition: all 0.15s;
+}
+
+.dir-btn.selected-up { background: rgba(78,205,196,0.2); color: var(–up); border-color: var(–up); }
+.dir-btn.selected-down { background: rgba(255,107,107,0.2); color: var(–down); border-color: var(–down); }
+.dir-btn.selected-flat { background: rgba(136,138,170,0.2); color: var(–flat); border-color: var(–flat); }
+
+.badge-btns {
+display: flex;
+gap: 8px;
+}
+
+.badge-btn {
+flex: 1;
+padding: 10px 4px;
+border-radius: 6px;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text2);
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+text-align: center;
+transition: all 0.15s;
+}
+
+.badge-btn.selected-honmei { background: rgba(232,197,71,0.2); color: var(–honmei); border-color: var(–honmei); }
+.badge-btn.selected-yume { background: rgba(192,132,252,0.2); color: var(–yume); border-color: var(–yume); }
+
+.modal-footer {
+display: flex;
+gap: 10px;
+margin-top: 20px;
+}
+
+.btn-cancel {
+flex: 1;
+padding: 13px;
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text2);
+border-radius: 8px;
+font-size: 14px;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+}
+
+.btn-save {
+flex: 2;
+padding: 13px;
+background: var(–accent);
+border: none;
+color: #0d0f14;
+border-radius: 8px;
+font-size: 14px;
+font-weight: 900;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+}
+
+/* 株価入力モーダル */
+.price-modal-info {
+background: var(–surface2);
+border-radius: 8px;
+padding: 10px 12px;
+margin-bottom: 14px;
+font-size: 12px;
+color: var(–text2);
+line-height: 1.6;
+}
+
+.price-modal-info .stock-title {
+font-size: 14px;
+font-weight: 700;
+color: var(–text);
+margin-bottom: 4px;
+}
+
+/* 空状態 */
+.empty-state {
+text-align: center;
+padding: 48px 20px;
+color: var(–text2);
+}
+
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 13px; line-height: 1.7; }
+
+/* フィルターバー */
+.filter-bar {
+display: flex;
+gap: 6px;
+margin-bottom: 12px;
+overflow-x: auto;
+padding-bottom: 4px;
+}
+
+.filter-btn {
+flex-shrink: 0;
+padding: 5px 12px;
+border-radius: 20px;
+border: 1px solid var(–border);
+background: var(–surface);
+color: var(–text2);
+font-size: 12px;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+white-space: nowrap;
+}
+
+.filter-btn.active {
+background: var(–accent);
+color: #0d0f14;
+border-color: var(–accent);
+font-weight: 700;
+}
+
+/* 判定入力フォーム（インライン） */
+.inline-price-area {
+border-top: 1px solid var(–border);
+padding: 12px 14px;
+background: var(–surface2);
+}
+
+.inline-price-label {
+font-size: 11px;
+color: var(–text2);
+margin-bottom: 8px;
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.inline-price-row {
+display: flex;
+gap: 8px;
+align-items: center;
+}
+
+.inline-price-input {
+flex: 1;
+background: var(–surface);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 6px;
+padding: 8px 10px;
+font-size: 14px;
+font-family: ‘JetBrains Mono’, monospace;
+-webkit-appearance: none;
+}
+
+.inline-price-input:focus { outline: none; border-color: var(–accent); }
+
+.inline-price-confirm {
+background: var(–accent);
+border: none;
+color: #0d0f14;
+border-radius: 6px;
+padding: 8px 14px;
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+}
+
+.inline-price-cancel {
+background: var(–surface);
+border: 1px solid var(–border);
+color: var(–text2);
+border-radius: 6px;
+padding: 8px 10px;
+font-size: 13px;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+}
+
+/* スクロールバー非表示 */
+.filter-bar::-webkit-scrollbar { display: none; }
+
+/* フラッシュ */
+.copy-flash {
+position: fixed;
+bottom: 24px;
+left: 50%;
+transform: translateX(-50%);
+background: var(–accent);
+color: #0d0f14;
+padding: 8px 20px;
+border-radius: 20px;
+font-size: 13px;
+font-weight: 700;
+z-index: 999;
+pointer-events: none;
+opacity: 0;
+transition: opacity 0.2s;
+}
+
+.copy-flash.show { opacity: 1; }
+
+/* 削除ボタン */
+.card-actions {
+display: flex;
+border-top: 1px solid var(–border);
+}
+
+.card-action-btn {
+flex: 1;
+padding: 8px;
+background: none;
+border: none;
+border-right: 1px solid var(–border);
+color: var(–text2);
+font-size: 12px;
+cursor: pointer;
+font-family: ‘Zen Kaku Gothic New’, sans-serif;
+}
+
+.card-action-btn:last-child { border-right: none; }
+.card-action-btn.danger { color: var(–miss); }
+
+/* 展開状態 */
+.card-detail { display: none; }
+.card-detail.open { display: block; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🪣 Tracker</h1>
+    <div class="subtitle">桶屋ストーリーAI · 銘柄予測追跡</div>
+  </div>
+  <a href="index.html" class="nav-link">← 記事生成</a>
+</header>
+
+<!-- 統計 -->
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-card">
+    <div class="stat-label">TOTAL HIT</div>
+    <div class="stat-value" id="statTotal">—</div>
+    <div class="stat-sub" id="statTotalSub">確定なし</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">CONFIRMED</div>
+    <div class="stat-value" id="statConfirmed">—</div>
+    <div class="stat-sub" id="statConfirmedSub">3ヶ月判定</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">REGISTERED</div>
+    <div class="stat-value" id="statCount">0</div>
+    <div class="stat-sub">銘柄数</div>
+  </div>
+</div>
+
+<!-- バッジ別統計 -->
+
+<div class="badge-stats">
+  <div class="badge-stat">
+    <div class="badge-dot honmei"></div>
+    <span class="badge-stat-label">本命</span>
+    <span class="badge-stat-val" id="statHonmei">—</span>
+  </div>
+  <div class="badge-stat">
+    <div class="badge-dot yume"></div>
+    <span class="badge-stat-label">夢株</span>
+    <span class="badge-stat-val" id="statYume">—</span>
+  </div>
+</div>
+
+<!-- タブ -->
+
+<div class="tabs">
+  <div class="tab active" data-tab="all">すべて</div>
+  <div class="tab" data-tab="pending">判定待ち</div>
+  <div class="tab" data-tab="hit">的中</div>
+  <div class="tab" data-tab="miss">外れ</div>
+</div>
+
+<main>
+  <button class="add-btn" id="addBtn">＋ 銘柄を手動登録</button>
+
+  <!-- フィルター -->
+
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">全銘柄</button>
+    <button class="filter-btn" data-filter="honmei">本命のみ</button>
+    <button class="filter-btn" data-filter="yume">夢株のみ</button>
+    <button class="filter-btn" data-filter="up">↑上昇予測</button>
+    <button class="filter-btn" data-filter="down">↓下落予測</button>
+    <button class="filter-btn" data-filter="flat">→横ばい予測</button>
+  </div>
+
+  <div id="cardList"></div>
+</main>
+
+<!-- 登録モーダル -->
+
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">銘柄を登録</h2>
+
+```
+<div class="form-group">
+  <label class="form-label">銘柄名</label>
+  <input class="form-input" id="fName" type="text" placeholder="例：サンプル工業">
+</div>
+<div class="form-row">
+  <div class="form-group">
+    <label class="form-label">証券コード</label>
+    <input class="form-input" id="fCode" type="text" placeholder="例：1234">
+  </div>
+  <div class="form-group">
+    <label class="form-label">市場</label>
+    <select class="form-select" id="fMarket">
+      <option value="東証P">東証P</option>
+      <option value="東証S">東証S</option>
+      <option value="東証G">東証G</option>
+      <option value="NYSE">NYSE</option>
+      <option value="NASDAQ">NASDAQ</option>
+      <option value="その他">その他</option>
+    </select>
+  </div>
+</div>
+
+<div class="form-group">
+  <label class="form-label">役割</label>
+  <div class="badge-btns">
+    <button class="badge-btn" id="btnHonmei" onclick="selectBadge('honmei')">本命</button>
+    <button class="badge-btn" id="btnYume" onclick="selectBadge('yume')">夢株</button>
+  </div>
+</div>
+
+<div class="form-group">
+  <label class="form-label">予想方向</label>
+  <div class="dir-btns">
+    <button class="dir-btn" id="btnUp" onclick="selectDir('up')">↑ 上昇</button>
+    <button class="dir-btn" id="btnDown" onclick="selectDir('down')">↓ 下落</button>
+    <button class="dir-btn" id="btnFlat" onclick="selectDir('flat')">→ 横ばい</button>
+  </div>
+</div>
+
+<div class="form-group">
+  <label class="form-label">投稿時株価（円 / ドル）</label>
+  <input class="form-input" id="fBasePrice" type="number" placeholder="例：840">
+</div>
+
+<div class="form-row">
+  <div class="form-group">
+    <label class="form-label">記事投稿日</label>
+    <input class="form-input" id="fPostDate" type="date">
+  </div>
+  <div class="form-group">
+    <label class="form-label">判定週数</label>
+    <select class="form-select" id="fWeeks">
+      <option value="1">1週（初動）</option>
+      <option value="4">4週（途中）</option>
+      <option value="13">13週（確定）</option>
+    </select>
+  </div>
+</div>
+
+<div class="form-group">
+  <label class="form-label">記事タイトル（任意）</label>
+  <input class="form-input" id="fArticleTitle" type="text" placeholder="記事タイトル">
+</div>
+<div class="form-group">
+  <label class="form-label">note URL（任意）</label>
+  <input class="form-input" id="fArticleUrl" type="url" placeholder="https://note.com/...">
+</div>
+
+<div class="modal-footer">
+  <button class="btn-cancel" id="modalCancel">キャンセル</button>
+  <button class="btn-save" id="modalSave">登録する</button>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- フラッシュ -->
+
+<div class="copy-flash" id="copyFlash">保存しました</div>
+
+<script>
+// ====== データ管理 ======
+const STORE_KEY = 'okaya_tracker_stocks';
+
+function loadStocks() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveStocks(stocks) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(stocks));
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// 判定日計算（投稿日 + N週）
+function calcJudgeDate(postDate, weeks) {
+  const d = new Date(postDate);
+  d.setDate(d.getDate() + weeks * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+// 的中判定
+// up: 基準比+5%以上、down: -5%以下、flat: ±5%未満
+function judgeHit(direction, basePrice, currentPrice) {
+  if (!basePrice || !currentPrice) return null;
+  const pct = (currentPrice - basePrice) / basePrice * 100;
+  if (direction === 'up') return pct >= 5 ? 'hit' : 'miss';
+  if (direction === 'down') return pct <= -5 ? 'hit' : 'miss';
+  if (direction === 'flat') return Math.abs(pct) < 5 ? 'hit' : 'miss';
+  return null;
+}
+
+function pctStr(basePrice, currentPrice) {
+  if (!basePrice || !currentPrice) return null;
+  const pct = (currentPrice - basePrice) / basePrice * 100;
+  return (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+}
+
+function isPast(dateStr) {
+  if (!dateStr) return false;
+  return new Date(dateStr) <= new Date();
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+// ====== 状態 ======
+let currentTab = 'all';
+let currentFilter = 'all';
+let editingId = null; // 株価入力中のカードID+フェーズ
+
+// ====== 統計 ======
+function calcStats(stocks) {
+  // 確定（3ヶ月判定）ベース
+  const confirmed = stocks.filter(s => s.judgments?.['13']?.result);
+  const confirmedHit = confirmed.filter(s => s.judgments['13'].result === 'hit');
+
+  // 全判定中の最終確定or最新判定
+  const judged = stocks.filter(s => {
+    return ['1','4','13'].some(k => s.judgments?.[k]?.result);
+  });
+  const judgedHit = judged.filter(s => {
+    const phases = ['13','4','1'];
+    for (const k of phases) {
+      if (s.judgments?.[k]?.result) return s.judgments[k].result === 'hit';
+    }
+    return false;
+  });
+
+  // バッジ別
+  const honmeiJudged = judged.filter(s => s.badge === 'honmei');
+  const honmeiHit = honmeiJudged.filter(s => {
+    const phases = ['13','4','1'];
+    for (const k of phases) {
+      if (s.judgments?.[k]?.result) return s.judgments[k].result === 'hit';
+    }
+    return false;
+  });
+  const yumeJudged = judged.filter(s => s.badge === 'yume');
+  const yumeHit = yumeJudged.filter(s => {
+    const phases = ['13','4','1'];
+    for (const k of phases) {
+      if (s.judgments?.[k]?.result) return s.judgments[k].result === 'hit';
+    }
+    return false;
+  });
+
+  return {
+    total: stocks.length,
+    judgedHit: judgedHit.length,
+    judgedTotal: judged.length,
+    confirmedHit: confirmedHit.length,
+    confirmedTotal: confirmed.length,
+    honmeiHit: honmeiHit.length,
+    honmeiTotal: honmeiJudged.length,
+    yumeHit: yumeHit.length,
+    yumeTotal: yumeJudged.length,
+  };
+}
+
+function renderStats() {
+  const stocks = loadStocks();
+  const s = calcStats(stocks);
+
+  document.getElementById('statCount').textContent = s.total;
+
+  if (s.judgedTotal > 0) {
+    const pct = Math.round(s.judgedHit / s.judgedTotal * 100);
+    document.getElementById('statTotal').textContent = pct + '%';
+    document.getElementById('statTotalSub').textContent = `${s.judgedHit}/${s.judgedTotal} 的中`;
+  } else {
+    document.getElementById('statTotal').textContent = '—';
+    document.getElementById('statTotalSub').textContent = '判定なし';
+  }
+
+  if (s.confirmedTotal > 0) {
+    const pct = Math.round(s.confirmedHit / s.confirmedTotal * 100);
+    document.getElementById('statConfirmed').textContent = pct + '%';
+    document.getElementById('statConfirmedSub').textContent = `${s.confirmedHit}/${s.confirmedTotal} 確定`;
+  } else {
+    document.getElementById('statConfirmed').textContent = '—';
+    document.getElementById('statConfirmedSub').textContent = '確定なし';
+  }
+
+  const hPct = s.honmeiTotal > 0 ? Math.round(s.honmeiHit/s.honmeiTotal*100)+'%' : '—';
+  const yPct = s.yumeTotal > 0 ? Math.round(s.yumeHit/s.yumeTotal*100)+'%' : '—';
+  document.getElementById('statHonmei').textContent = hPct;
+  document.getElementById('statYume').textContent = yPct;
+}
+
+// ====== フィルタリング ======
+function filterStocks(stocks) {
+  // タブ
+  let list = stocks;
+  if (currentTab === 'pending') {
+    list = list.filter(s => {
+      return ['1','4','13'].some(k => {
+        const jd = s.judgments?.[k];
+        return jd && !jd.result && isPast(jd.judgeDate);
+      });
+    });
+  } else if (currentTab === 'hit') {
+    list = list.filter(s => ['13','4','1'].some(k => s.judgments?.[k]?.result === 'hit'));
+  } else if (currentTab === 'miss') {
+    list = list.filter(s => {
+      const hasJudged = ['13','4','1'].some(k => s.judgments?.[k]?.result);
+      const allMiss = ['13','4','1'].every(k => !s.judgments?.[k] || s.judgments[k].result !== 'hit');
+      return hasJudged && allMiss;
+    });
+  }
+
+  // フィルター
+  if (currentFilter === 'honmei') list = list.filter(s => s.badge === 'honmei');
+  else if (currentFilter === 'yume') list = list.filter(s => s.badge === 'yume');
+  else if (currentFilter === 'up') list = list.filter(s => s.direction === 'up');
+  else if (currentFilter === 'down') list = list.filter(s => s.direction === 'down');
+  else if (currentFilter === 'flat') list = list.filter(s => s.direction === 'flat');
+
+  return list;
+}
+
+// ====== カード描画 ======
+const PHASES = [
+  { key: '1', label: '初動', weeks: 1 },
+  { key: '4', label: '途中', weeks: 4 },
+  { key: '13', label: '確定', weeks: 13 },
+];
+
+const dirLabel = { up: '↑ 上昇', down: '↓ 下落', flat: '→ 横ばい' };
+const dirClass = { up: 'dir-up', down: 'dir-down', flat: 'dir-flat' };
+
+function renderCards() {
+  const stocks = loadStocks();
+  const list = filterStocks(stocks);
+  const container = document.getElementById('cardList');
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>表示できる銘柄がありません</p></div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+
+  list.forEach(stock => {
+    const card = document.createElement('div');
+    card.className = 'stock-card';
+    card.dataset.id = stock.id;
+
+    // ヘッダー
+    const header = document.createElement('div');
+    header.className = 'stock-card-header';
+
+    const badge = `<span class="stock-badge ${stock.badge}">${stock.badge === 'honmei' ? '本命' : '夢株'}</span>`;
+    const dir = `<span class="stock-direction ${dirClass[stock.direction]}">${dirLabel[stock.direction]}</span>`;
+
+    header.innerHTML = `
+      ${badge}
+      <div class="stock-main">
+        <div class="stock-name">${esc(stock.name)}</div>
+        <div class="stock-meta">${esc(stock.code)} · ${esc(stock.market)} · 基準¥${stock.basePrice ?? '—'}</div>
+      </div>
+      ${dir}
+    `;
+
+    card.appendChild(header);
+
+    // 記事リンク
+    if (stock.articleTitle || stock.articleUrl) {
+      const articleDiv = document.createElement('div');
+      articleDiv.className = 'stock-article';
+      if (stock.articleUrl) {
+        articleDiv.innerHTML = `📄 <a href="${esc(stock.articleUrl)}" target="_blank">${esc(stock.articleTitle || stock.articleUrl)}</a>`;
+      } else {
+        articleDiv.textContent = `📄 ${stock.articleTitle}`;
+      }
+      card.appendChild(articleDiv);
+    }
+
+    // 判定ライン（詳細は常時表示）
+    const detail = document.createElement('div');
+    detail.className = 'card-detail open';
+
+    // 3フェーズ判定行
+    const judgeRow = document.createElement('div');
+    judgeRow.className = 'judgment-row';
+
+    PHASES.forEach(phase => {
+      const cell = document.createElement('div');
+      cell.className = 'judgment-cell';
+
+      const jd = stock.judgments?.[phase.key];
+      const judgeDate = jd?.judgeDate;
+      const past = isPast(judgeDate);
+      const result = jd?.result;
+      const price = jd?.price;
+      const pct = (price && stock.basePrice) ? pctStr(stock.basePrice, price) : null;
+
+      let resultIcon = '';
+      let priceHtml = '';
+      let actionHtml = '';
+
+      if (result === 'hit') {
+        resultIcon = `<div class="jc-result">✅</div>`;
+        const cls = stock.direction === 'up' ? 'pct-up' : (stock.direction === 'down' ? 'pct-down' : 'pct-flat');
+        priceHtml = `<div class="jc-price">¥${price}</div><div class="jc-pct ${cls}">${pct}</div>`;
+      } else if (result === 'miss') {
+        resultIcon = `<div class="jc-result">❌</div>`;
+        priceHtml = `<div class="jc-price">¥${price}</div><div class="jc-pct">${pct}</div>`;
+      } else if (past) {
+        resultIcon = `<div class="jc-result" style="opacity:.3">⬜</div>`;
+        const btn = document.createElement('button');
+        btn.className = 'jc-input-btn';
+        btn.textContent = '株価入力';
+        btn.addEventListener('click', () => openPriceInput(stock.id, phase.key, cell));
+        actionHtml = btn;
+      } else {
+        resultIcon = `<div class="jc-result" style="opacity:.3">🕐</div>`;
+        priceHtml = `<div class="jc-pending">${fmtDate(judgeDate)}〜</div>`;
+      }
+
+      cell.innerHTML = `
+        <div class="jc-label">${phase.label}</div>
+        <div class="jc-date">${fmtDate(judgeDate)}</div>
+        ${resultIcon}
+        ${priceHtml}
+      `;
+
+      if (actionHtml) cell.appendChild(actionHtml);
+      judgeRow.appendChild(cell);
+    });
+
+    detail.appendChild(judgeRow);
+
+    // アクション行
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'card-action-btn';
+    editBtn.textContent = '✏️ 編集';
+    editBtn.addEventListener('click', () => openEditModal(stock.id));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'card-action-btn danger';
+    delBtn.textContent = '🗑 削除';
+    delBtn.addEventListener('click', () => deleteStock(stock.id));
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    detail.appendChild(actions);
+
+    card.appendChild(detail);
+    container.appendChild(card);
+  });
+}
+
+// ====== 株価入力（インライン） ======
+let activePriceArea = null;
+
+function openPriceInput(stockId, phaseKey, cell) {
+  // 既存の入力エリアを閉じる
+  if (activePriceArea) {
+    activePriceArea.remove();
+    activePriceArea = null;
+  }
+
+  const area = document.createElement('div');
+  area.className = 'inline-price-area';
+
+  const stocks = loadStocks();
+  const stock = stocks.find(s => s.id === stockId);
+  const phase = PHASES.find(p => p.key === phaseKey);
+
+  area.innerHTML = `<div class="inline-price-label">${phase.label}の株価を入力（基準: ¥${stock.basePrice}）</div>`;
+
+  const row = document.createElement('div');
+  row.className = 'inline-price-row';
+
+  const input = document.createElement('input');
+  input.className = 'inline-price-input';
+  input.type = 'number';
+  input.placeholder = '現在株価';
+  input.inputMode = 'decimal';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className = 'inline-price-confirm';
+  confirmBtn.textContent = '判定';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'inline-price-cancel';
+  cancelBtn.textContent = '✕';
+
+  confirmBtn.addEventListener('click', () => {
+    const price = parseFloat(input.value);
+    if (!price || price <= 0) { showFlash('株価を入力してください'); return; }
+    recordJudgment(stockId, phaseKey, price);
+    area.remove();
+    activePriceArea = null;
+    renderAll();
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    area.remove();
+    activePriceArea = null;
+  });
+
+  row.appendChild(input);
+  row.appendChild(confirmBtn);
+  row.appendChild(cancelBtn);
+  area.appendChild(row);
+
+  // カードの一番下に追加
+  const card = cell.closest('.stock-card');
+  card.appendChild(area);
+  activePriceArea = area;
+  input.focus();
+}
+
+function recordJudgment(stockId, phaseKey, price) {
+  const stocks = loadStocks();
+  const stock = stocks.find(s => s.id === stockId);
+  if (!stock) return;
+  if (!stock.judgments) stock.judgments = {};
+  if (!stock.judgments[phaseKey]) stock.judgments[phaseKey] = {};
+  const result = judgeHit(stock.direction, stock.basePrice, price);
+  stock.judgments[phaseKey].price = price;
+  stock.judgments[phaseKey].result = result;
+  saveStocks(stocks);
+  showFlash(result === 'hit' ? '✅ 的中！' : '❌ 外れ');
+}
+
+// ====== モーダル ======
+let selectedDir = null;
+let selectedBadge = null;
+
+function selectDir(dir) {
+  selectedDir = dir;
+  ['up','down','flat'].forEach(d => {
+    const btn = document.getElementById('btn' + d.charAt(0).toUpperCase() + d.slice(1));
+    btn.className = 'dir-btn' + (d === dir ? ` selected-${d}` : '');
+  });
+}
+
+function selectBadge(badge) {
+  selectedBadge = badge;
+  document.getElementById('btnHonmei').className = 'badge-btn' + (badge === 'honmei' ? ' selected-honmei' : '');
+  document.getElementById('btnYume').className = 'badge-btn' + (badge === 'yume' ? ' selected-yume' : '');
+}
+
+function openAddModal() {
+  editingId = null;
+  selectedDir = null;
+  selectedBadge = null;
+  document.getElementById('modalTitle').textContent = '銘柄を登録';
+  document.getElementById('fName').value = '';
+  document.getElementById('fCode').value = '';
+  document.getElementById('fMarket').value = '東証P';
+  document.getElementById('fBasePrice').value = '';
+  document.getElementById('fPostDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fArticleTitle').value = '';
+  document.getElementById('fArticleUrl').value = '';
+  document.getElementById('fWeeks').value = '1';
+  ['btnHonmei','btnYume'].forEach(id => document.getElementById(id).className = 'badge-btn');
+  ['btnUp','btnDown','btnFlat'].forEach(id => document.getElementById(id).className = 'dir-btn');
+  document.getElementById('addModal').classList.remove('hidden');
+}
+
+function openEditModal(stockId) {
+  const stocks = loadStocks();
+  const s = stocks.find(x => x.id === stockId);
+  if (!s) return;
+  editingId = stockId;
+  selectedDir = s.direction;
+  selectedBadge = s.badge;
+
+  document.getElementById('modalTitle').textContent = '銘柄を編集';
+  document.getElementById('fName').value = s.name || '';
+  document.getElementById('fCode').value = s.code || '';
+  document.getElementById('fMarket').value = s.market || '東証P';
+  document.getElementById('fBasePrice').value = s.basePrice || '';
+  document.getElementById('fPostDate').value = s.postDate || '';
+  document.getElementById('fArticleTitle').value = s.articleTitle || '';
+  document.getElementById('fArticleUrl').value = s.articleUrl || '';
+  document.getElementById('fWeeks').value = s.weeks || '1';
+
+  selectDir(s.direction);
+  selectBadge(s.badge);
+
+  document.getElementById('addModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.add('hidden');
+  editingId = null;
+}
+
+function saveModal() {
+  const name = document.getElementById('fName').value.trim();
+  const code = document.getElementById('fCode').value.trim();
+  const market = document.getElementById('fMarket').value;
+  const basePrice = parseFloat(document.getElementById('fBasePrice').value);
+  const postDate = document.getElementById('fPostDate').value;
+  const articleTitle = document.getElementById('fArticleTitle').value.trim();
+  const articleUrl = document.getElementById('fArticleUrl').value.trim();
+  const weeks = document.getElementById('fWeeks').value;
+
+  if (!name) { showFlash('銘柄名を入力してください'); return; }
+  if (!selectedDir) { showFlash('予想方向を選択してください'); return; }
+  if (!selectedBadge) { showFlash('役割（本命/夢株）を選択してください'); return; }
+  if (!postDate) { showFlash('投稿日を入力してください'); return; }
+
+  const stocks = loadStocks();
+
+  // 3フェーズの判定日を自動計算
+  const judgments = {};
+  PHASES.forEach(p => {
+    const judgeDate = calcJudgeDate(postDate, p.weeks);
+    if (editingId) {
+      const existing = stocks.find(s => s.id === editingId);
+      judgments[p.key] = existing?.judgments?.[p.key] || { judgeDate };
+      judgments[p.key].judgeDate = judgeDate; // 投稿日が変わったら更新
+    } else {
+      judgments[p.key] = { judgeDate };
+    }
+  });
+
+  if (editingId) {
+    const idx = stocks.findIndex(s => s.id === editingId);
+    if (idx !== -1) {
+      stocks[idx] = { ...stocks[idx], name, code, market, basePrice, postDate, articleTitle, articleUrl, weeks, direction: selectedDir, badge: selectedBadge, judgments };
+    }
+  } else {
+    stocks.push({ id: genId(), name, code, market, basePrice, postDate, articleTitle, articleUrl, weeks, direction: selectedDir, badge: selectedBadge, judgments });
+  }
+
+  saveStocks(stocks);
+  closeModal();
+  showFlash('保存しました');
+  renderAll();
+}
+
+function deleteStock(stockId) {
+  const stocks = loadStocks();
+  const s = stocks.find(x => x.id === stockId);
+  if (!s) return;
+  // confirm代わりに簡易チェック（iPhoneのalert互換性のため）
+  const confirmed = window.confirm(`「${s.name}」を削除しますか？`);
+  if (!confirmed) return;
+  const newList = stocks.filter(x => x.id !== stockId);
+  saveStocks(newList);
+  renderAll();
+}
+
+// ====== STEP19 payload受信 ======
+// index.htmlのsendToTrackerからlocalStorageで渡される
+// payload構造: { articleTitle, articleUrl, articleDate, stocks:[{name,code,market,price,direction,deadline,badge}] }
+function checkIncomingPayload() {
+  const raw = localStorage.getItem('okaya_tracker_payload');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    localStorage.removeItem('okaya_tracker_payload');
+
+    const postDate = new Date().toISOString().slice(0, 10);
+    const articleTitle = data.articleTitle || '';
+    const articleUrl = data.articleUrl || '';
+    const stocksIn = Array.isArray(data.stocks) ? data.stocks : [];
+
+    const stocks = loadStocks();
+
+    stocksIn.forEach(item => {
+      // deadlineから判定週数を決定
+      const deadlineMap = { '1w': 1, '1m': 4, '3m': 13 };
+      // 全3フェーズの判定日を常に生成する
+      const judgments = {};
+      PHASES.forEach(p => {
+        judgments[p.key] = { judgeDate: calcJudgeDate(postDate, p.weeks) };
+      });
+
+      // 方向の正規化（index.htmlは'up'/'down'/'flat'）
+      const dir = item.direction || 'up';
+
+      // 役割の正規化
+      const badge = (item.badge === '本命' || item.badge === 'honmei') ? 'honmei' : 'yume';
+
+      // 市場の正規化（JP→東証P等の変換は行わずそのまま保持）
+      const market = item.market || 'JP';
+
+      stocks.push({
+        id: genId(),
+        name: item.name || '',
+        code: item.code || '',
+        market,
+        basePrice: parseFloat(item.price) || null,
+        postDate,
+        articleTitle,
+        articleUrl,
+        weeks: '1',
+        direction: dir,
+        badge,
+        judgments,
+      });
+    });
+
+    saveStocks(stocks);
+    showFlash(`${stocksIn.length}件の銘柄を受け取りました`);
+    renderAll();
+  } catch(e) {
+    console.error('payload parse error', e);
+  }
+}
+
+// ====== ユーティリティ ======
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showFlash(msg) {
+  const el = document.getElementById('copyFlash');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function renderAll() {
+  renderStats();
+  renderCards();
+}
+
+// ====== イベントバインド ======
+document.getElementById('addBtn').addEventListener('click', openAddModal);
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalSave').addEventListener('click', saveModal);
+
+// モーダル背景クリックで閉じる
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// タブ
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    currentTab = this.dataset.tab;
+    renderCards();
+  });
+});
+
+// フィルター
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentFilter = this.dataset.filter;
+    renderCards();
+  });
+});
+
+// ====== 初期化 ======
+checkIncomingPayload();
+renderAll();
+</script>
+
+</body>
+</html>
