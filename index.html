@@ -760,7 +760,7 @@ border-radius: 5px;
   color: var(--accent);
   font-weight: 700;
 }
-{ font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px; } .xpost-counter.over { color: var(--danger); } .btn-chatgpt { background: rgba(116,198,157,0.12); color: var(--chatgpt); border-color: rgba(116,198,157,0.3); } .btn-chatgpt:hover { background: rgba(116,198,157,0.2); }
+.xpost-counter { font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px; } .xpost-counter.over { color: var(--danger); } .btn-chatgpt { background: rgba(116,198,157,0.12); color: var(--chatgpt); border-color: rgba(116,198,157,0.3); } .btn-chatgpt:hover { background: rgba(116,198,157,0.2); }
 
 </style>
 </head>
@@ -2688,89 +2688,6 @@ function renderStep08() {
               ${s.listed ? 'checked' : ''}
               onchange="updateStockData(${i}, 'listed', this.checked); checkAllListed(); updateListedLabel(${i})">
             <div class="toggle-track"></div>
-          </label>
-        </div>
-      </div>`;
-  });
-
-  document.getElementById('step08_stocks_container').innerHTML = html;
-  document.getElementById('step08_recommend_card').style.display = 'block';
-  checkRecommendVersion();
-}
-
-  const json = localStorage.getItem(KEY_PREFIX + 'step07_output') || '';
-  if (!json.trim()) {
-    document.getElementById('step08_stocks_container').innerHTML =
-      '<div class="warn-box">STEP07の出力がありません。STEP07に戻って出力を貼り付けてください。</div>';
-    return;
-  }
-  let stocks = [];
-  try {
-    const match = json.match(/\[[\s\S]*\]/);
-    if (match) stocks = JSON.parse(match[0]);
-  } catch(e) {
-    document.getElementById('step08_stocks_container').innerHTML =
-      '<div class="warn-box">JSONの解析に失敗しました。STEP07の出力を確認してください。</div>';
-    return;
-  }
-  const saved = localStorage.getItem(KEY_PREFIX + 'step08_data');
-  if (saved) {
-    try {
-      const savedData = JSON.parse(saved);
-      stocks = stocks.map(s => {
-        const match = savedData.find(d => d.code === s['コード']);
-        return match ? { ...s, ...match } : s;
-      });
-    } catch(e) { showToast('JSON解析エラー: ' + e.message); }
-  }
-  state.step08Data = stocks;
-
-  let html = '';
-  stocks.forEach((s, i) => {
-    const market = s['市場'] || 'JP';
-    const priceLabel = market === 'US' ? 'USD' : '円';
-    const role = s['役割'] || '夢株';
-    html += `
-      <div class="stock-card" id="stock_card_${i}">
-        <div class="stock-card-header">
-          <span class="stock-card-name">${s['銘柄名'] || '銘柄' + (i+1)}</span>
-          <span class="stock-card-code">${s['コード'] || '-'}</span>
-          <span class="stock-market-badge ${market === 'US' ? 'badge-us' : 'badge-jp'}">${market}</span>
-        </div>
-        <div class="info-box" style="font-size:11px;margin-bottom:12px;">
-          役割: <strong>${role}</strong> / ポジション: ${s['ポジション'] || '-'} / 時間軸: ${s['時間軸'] || '-'}<br>
-          ${s['テーマ適合理由'] || ''}
-        </div>
-        <div class="form-group">
-          <label class="form-label">証券コード（修正可）</label>
-          <input class="form-input" type="text" id="stock_${i}_code"
-            value="${s['コード'] || ''}"
-            oninput="updateStockData(${i}, 'code', this.value)">
-        </div>
-        <div class="form-group">
-          <label class="form-label">株価（${role}）<span class="required">*</span></label>
-          <input class="form-input" type="number" id="stock_${i}_price"
-            placeholder="${priceLabel}"
-            value="${s.price || s.price_main || ''}"
-            oninput="updateStockData(${i}, 'price', this.value)">
-        </div>
-        <div class="form-group">
-          <label class="form-label">業績概況</label>
-          <input class="form-input" type="text" id="stock_${i}_performance"
-            placeholder="黒字 / 赤字 / ギリギリ 等"
-            value="${s.performance || ''}"
-            oninput="updateStockData(${i}, 'performance', this.value)">
-        </div>
-        <div class="toggle-wrap">
-          <div>
-            <div class="toggle-label">上場確認</div>
-            <div class="toggle-sub" id="stock_${i}_listed_label">${s.listed ? '上場不可' : '確認済'}</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="stock_${i}_listed"
-              ${s.listed ? 'checked' : ''}
-              onchange="updateStockData(${i}, 'listed', this.checked); checkAllListed(); updateListedLabel(${i})">
-            <div class="toggle-track" id="stock_${i}_listed_track"></div>
           </label>
         </div>
       </div>`;
