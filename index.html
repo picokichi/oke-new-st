@@ -1476,6 +1476,81 @@ JSONのみで出力すること。説明文・マークダウン不要。
   </div>
 </div>
 
+<!-- STEP09.5 -->
+
+<div class="step-panel" id="step095">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 09.5</span>
+      <h1 class="step-title">比喩・例え話生成</h1>
+      <span class="step-owner-badge owner-claude">Claude</span>
+    </div>
+    <p class="step-desc">第2・第3段落の直後に挿入する比喩・例え話をClaudeで生成します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">使用プロンプト</div>
+    <div class="prompt-note">以下をClaudeに貼り付け、STEP09の記事全文を追加してください</div>
+        <div class="prompt-box" id="step095_prompt">先ほど生成した記事本文を読んだ上で、以下の2箇所に挿入する比喩・例え話を生成してください。
+
+■ 挿入箇所①：第2段落の直後
+・過去ニュースの因果を日常的な出来事に例えること
+・3〜5文程度・語りかけ口調で書くこと
+・E群またはC群のフレーズで入ること
+
+■ 挿入箇所②：第3段落の直後
+・因果予測を身近な場面に例えること
+・3〜5文程度・語りかけ口調で書くこと
+・C群またはA群のフレーズで入ること
+
+A群・C群・E群のフレーズはプロジェクト指示書のテンプレート集を参照してください。
+
+【出力形式】
+挿入箇所①と②をそれぞれ独立して出力すること。
+本文への統合はしないこと。
+テンプレートのIDラベルは出力しないこと。</div>
+
+    <div class="btn-row">
+      <button class="btn btn-claude" onclick="copyText('step095_prompt')">Claudeにコピー</button>
+      <span class="copy-flash" id="step095_prompt_flash">コピーしました</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">出力を貼り付け</div>
+    <textarea class="paste-area" id="step095_output" placeholder="Claudeの比喩・例え話（①②）をここに貼り付けてください..." rows="12" oninput="autoSave('step095_output')"></textarea>
+    <div class="btn-row right">
+      <button class="btn btn-primary" onclick="completeStep(10)">完了 - STEP09.6へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP09.6 -->
+
+<div class="step-panel" id="step096">
+  <div class="step-header">
+    <div class="step-header-top">
+      <span class="step-num-badge">STEP 09.6</span>
+      <h1 class="step-title">比喩統合</h1>
+      <span class="step-owner-badge owner-human">あなた</span>
+    </div>
+    <p class="step-desc">STEP09.5の比喩・例え話を記事本文の指定箇所に手動で挿入します。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">比喩・例え話（STEP09.5出力）</div>
+    <div id="step096_metaphor_display" class="prompt-box" style="max-height:300px;">STEP09.5の出力がここに表示されます</div>
+  </div>
+  <div class="info-box">
+    挿入箇所①を第2段落の直後、挿入箇所②を第3段落の直後にコピペしてください。<br>
+    統合後の記事全文をSTEP10に引き継ぎます。
+  </div>
+  <div class="card">
+    <div class="card-title">比喩統合済み記事（直接編集可）</div>
+    <textarea class="paste-area" id="step096_article" placeholder="STEP09の記事に比喩を挿入した全文をここに貼り付けてください..." rows="20" oninput="autoSave('step096_article')"></textarea>
+  </div>
+  <div class="btn-row right">
+    <button class="btn btn-primary" onclick="completeStep(11)">統合完了 - STEP10へ</button>
+  </div>
+</div>
+
 <!-- STEP10 -->
 
 <div class="step-panel" id="step10">
@@ -2212,22 +2287,24 @@ const STEPS = [
   { num: 6,  id: 'step06', name: '妥当性判定',          owner: 'human',      group: '因果構築' },
   { num: 7,  id: 'step07', name: '銘柄抽出',            owner: 'claude',     group: '銘柄' },
   { num: 8,  id: 'step08', name: '銘柄情報補足',        owner: 'human',      group: '銘柄' },
-  { num: 9,  id: 'step09', name: '記事生成',            owner: 'claude',     group: '記事生成' },
-  { num: 10, id: 'step10', name: 'コンプラチェック',    owner: 'chatgpt',    group: '記事生成' },
-  { num: 11, id: 'step11a', name: 'コンプラ修正反映',  owner: 'claude',     group: '記事生成' },
-  { num: 12, id: 'step11b', name: '採点',               owner: 'claude',     group: '記事生成' },
-  { num: 13, id: 'step12', name: '読後感入力',          owner: 'human',      group: 'リライト' },
-  { num: 14, id: 'step13', name: '感想解析',            owner: 'chatgpt',    group: 'リライト' },
-  { num: 15, id: 'step14', name: 'リライト',            owner: 'claude',     group: 'リライト' },
-  { num: 16, id: 'step15', name: 'リライト確認',        owner: 'human',      group: 'リライト' },
-  { num: 17, id: 'step16a', name: 'タイトル生成(Claude)', owner: 'claude',  group: '公開準備' },
-  { num: 18, id: 'step16b', name: 'タイトル生成(ChatGPT)', owner: 'chatgpt', group: '公開準備' },
-  { num: 19, id: 'step16c', name: 'タイトル選択',       owner: 'human',      group: '公開準備' },
-  { num: 20, id: 'step17', name: 'note公開・コピペ',    owner: 'human',      group: '公開準備' },
-  { num: 21, id: 'step18a', name: 'X投稿文生成(ChatGPT)', owner: 'chatgpt', group: 'X投稿' },
-  { num: 22, id: 'step18b', name: 'X投稿文生成(Claude)', owner: 'claude',   group: 'X投稿' },
-  { num: 23, id: 'step18c', name: 'X投稿文選択・投稿',  owner: 'human',      group: 'X投稿' },
-  { num: 24, id: 'step19', name: 'Tracker登録',         owner: 'human',      group: 'X投稿' },
+    { num: 9,  id: 'step09',  name: '記事生成',            owner: 'claude',     group: '記事生成' },
+  { num: 10, id: 'step095', name: '比喩・例え話生成',    owner: 'claude',     group: '記事生成' },
+  { num: 11, id: 'step096', name: '比喩統合',            owner: 'human',      group: '記事生成' },
+    { num: 12, id: 'step10',  name: 'コンプラチェック',      owner: 'chatgpt',    group: '記事生成' },
+  { num: 13, id: 'step11a', name: 'コンプラ修正反映',      owner: 'claude',     group: '記事生成' },
+  { num: 14, id: 'step11b', name: '採点',                   owner: 'claude',     group: '記事生成' },
+  { num: 15, id: 'step12',  name: '読後感入力',             owner: 'human',      group: 'リライト' },
+  { num: 16, id: 'step13',  name: '感想解析',               owner: 'chatgpt',    group: 'リライト' },
+  { num: 17, id: 'step14',  name: 'リライト',               owner: 'claude',     group: 'リライト' },
+  { num: 18, id: 'step15',  name: 'リライト確認',           owner: 'human',      group: 'リライト' },
+  { num: 19, id: 'step16a', name: 'タイトル生成(Claude)',   owner: 'claude',     group: '公開準備' },
+  { num: 20, id: 'step16b', name: 'タイトル生成(ChatGPT)', owner: 'chatgpt',    group: '公開準備' },
+  { num: 21, id: 'step16c', name: 'タイトル選択',           owner: 'human',      group: '公開準備' },
+  { num: 22, id: 'step17',  name: 'note公開・コピペ',       owner: 'human',      group: '公開準備' },
+  { num: 23, id: 'step18a', name: 'X投稿文生成(ChatGPT)',   owner: 'chatgpt',    group: 'X投稿' },
+  { num: 24, id: 'step18b', name: 'X投稿文生成(Claude)',    owner: 'claude',     group: 'X投稿' },
+  { num: 25, id: 'step18c', name: 'X投稿文選択・投稿',      owner: 'human',      group: 'X投稿' },
+  { num: 26, id: 'step19',  name: 'Tracker登録',            owner: 'human',      group: 'X投稿' },
 ];
 
 const TOTAL_STEPS = STEPS.length;
@@ -2291,7 +2368,7 @@ function loadAllSavedText() {
     'step01_mb1_title','step01_mb1_url','step01_mb1_source','step01_mb1_date',
     'step01_mb2_title','step01_mb2_url','step01_mb2_source','step01_mb2_date',
     'step02_output','step04_output','step05_output',
-    'step07_output','step09_output','step10_output','step11a_output',
+    'step07_output','step09_output','step095_output','step096_article','step10_output','step11a_output',
     'step11b_output','step12_feedback','step13_output','step14_output',
     'step15_article','step16a_output','step16b_output','step16c_final_title',
     'step17_note_url','step18a_output','step18b_output',
@@ -2347,17 +2424,17 @@ function goToStep(num, save = true) {
   document.getElementById('progressBar').style.width = pct + '%';
   buildSidebar();
   window.scrollTo(0, 0);
-  if (num === 6)  renderStep06Result();
+    if (num === 6)  renderStep06Result();
   if (num === 7)  updateStep07Prompt();
   if (num === 8)  renderStep08();
   if (num === 9)  renderStep09();
-  if (num === 12) renderStep12();
-  if (num === 16) renderStep15Article();
-  if (num === 19) renderStep16c();
-  if (num === 20) renderStep17();
-  if (num === 23) renderStep18c();
-  if (num === 24) renderStep19();
-}
+  if (num === 11) renderStep096();
+  if (num === 15) renderStep12();
+  if (num === 18) renderStep15Article();
+  if (num === 21) renderStep16c();
+  if (num === 22) renderStep17();
+  if (num === 25) renderStep18c();
+  if (num === 26) renderStep19(); }
 
 function completeStep01() {
   const get = id => localStorage.getItem(KEY_PREFIX + id) || '';
@@ -2389,7 +2466,7 @@ function completeStep01() {
 
 function completeStep(stepNum) {
   if (!state.completedSteps.includes(stepNum)) state.completedSteps.push(stepNum);
-  const stepMap = {1:2,2:3,3:4,4:5,5:6,7:8,8:9,9:10,10:11,11:12,12:13,13:14,14:15,15:16,16:17,17:18,18:19,19:20,20:21,21:22,22:23,23:24};
+  const stepMap = {1:2,2:3,3:4,4:5,5:6,7:8,8:9,9:10,10:11,11:12,12:13,13:14,14:15,15:16,16:17,17:18,18:19,19:20,20:21,21:22,22:23,23:24,24:25,25:26};
   const next = stepMap[stepNum];
   if (next) { saveState(); goToStep(next); }
 }
@@ -2850,7 +2927,7 @@ function getAppendText(promptId) {
       return append;
     },
 
-    'step10_prompt': () => { const s9 = get('step09_output'); return s9 ? '\n\n-----\n【STEP09 記事全文】\n' + s9 : ''; },
+    'step10_prompt': () => { const s96 = get('step096_article') || get('step09_output'); return s96 ? '\n\n-----\n【記事全文（比喩統合済み）】\n' + s96 : ''; },
     'step11a_prompt': () => {
       const s9 = get('step09_output'); const s10 = get('step10_output'); let append = '';
       if (s9) append += '\n\n-----\n【STEP09 元記事】\n' + s9;
@@ -3161,6 +3238,7 @@ function switchStep09Tab(tab) {
   if (tabB) tabB.className = 'btn btn-sm ' + (tab === 'b' ? 'btn-claude' : 'btn-secondary');
 }
 
+function renderStep096() {   const el = document.getElementById('step096_metaphor_display');   if (el) {     el.textContent = localStorage.getItem(KEY_PREFIX+'step095_output') || '（STEP09.5の出力がありません）';   }   const articleEl = document.getElementById('step096_article');   if (articleEl && !articleEl.value) {     const raw = localStorage.getItem(KEY_PREFIX+'step09_output') || '';     articleEl.value = extractArticle(raw);     autoSave('step096_article');   } }  
 function renderStep12() {
   const el = document.getElementById('step12_article_display');
   if (el) {
