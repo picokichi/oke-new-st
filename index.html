@@ -724,7 +724,43 @@ border-radius: 5px;
 /* ===== スクロールバー ===== */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; } .xpost-counter { font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px; } .xpost-counter.over { color: var(--danger); } .btn-chatgpt { background: rgba(116,198,157,0.12); color: var(--chatgpt); border-color: rgba(116,198,157,0.3); } .btn-chatgpt:hover { background: rgba(116,198,157,0.2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ===== 銘柄選択チェックボックス ===== */
+.stock-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.stock-select-wrap input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.stock-select-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.stock-card.unselected {
+  opacity: 0.45;
+}
+.step08-counter {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 12px;
+  text-align: right;
+}
+.step08-counter span {
+  color: var(--accent);
+  font-weight: 700;
+}
+{ font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px; } .xpost-counter.over { color: var(--danger); } .btn-chatgpt { background: rgba(116,198,157,0.12); color: var(--chatgpt); border-color: rgba(116,198,157,0.3); } .btn-chatgpt:hover { background: rgba(116,198,157,0.2); }
 
 </style>
 </head>
@@ -2568,8 +2604,100 @@ function updateStep07Prompt() {
   if (el) el.textContent = fullPrompt;
 }
 
-// ===== STEP08 ===== （★修正①：株価入力欄を1銘柄1列に統一）
+// ===== STEP08 =====
 function renderStep08() {
+  const json = localStorage.getItem(KEY_PREFIX + 'step07_output') || '';
+  if (!json.trim()) {
+    document.getElementById('step08_stocks_container').innerHTML =
+      '<div class="warn-box">STEP07の出力がありません。STEP07に戻って出力を貼り付けてください。</div>';
+    return;
+  }
+  let stocks = [];
+  try {
+    const match = json.match(/\[[\s\S]*\]/);
+    if (match) stocks = JSON.parse(match[0]);
+  } catch(e) {
+    document.getElementById('step08_stocks_container').innerHTML =
+      '<div class="warn-box">JSONの解析に失敗しました。STEP07の出力を確認してください。</div>';
+    return;
+  }
+  const saved = localStorage.getItem(KEY_PREFIX + 'step08_data');
+  if (saved) {
+    try {
+      const savedData = JSON.parse(saved);
+      stocks = stocks.map(s => {
+        const match = savedData.find(d => d.code === s['コード']);
+        return match ? { ...s, ...match } : s;
+      });
+    } catch(e) { showToast('JSON解析エラー: ' + e.message); }
+  }
+  state.step08Data = stocks;
+
+  const counter = `<div class="step08-counter">選択中: <span id="step08_selected_count">${stocks.length}</span> / ${stocks.length}社</div>`;
+
+  let html = counter;
+  stocks.forEach((s, i) => {
+    const market = s['市場'] || 'JP';
+    const priceLabel = market === 'US' ? 'USD' : '円';
+    const role = s['役割'] || '夢株';
+    const isSelected = s.selected !== false;
+    html += `
+      <div class="stock-card ${isSelected ? '' : 'unselected'}" id="stock_card_${i}">
+        <div class="stock-select-wrap">
+          <input type="checkbox" id="stock_${i}_select"
+            ${isSelected ? 'checked' : ''}
+            onchange="toggleStockSelect(${i})">
+          <label class="stock-select-label" for="stock_${i}_select">記事に使用する</label>
+        </div>
+        <div class="stock-card-header">
+          <span class="stock-card-name">${s['銘柄名'] || '銘柄' + (i+1)}</span>
+          <span class="stock-card-code">${s['コード'] || '-'}</span>
+          <span class="stock-market-badge ${market === 'US' ? 'badge-us' : 'badge-jp'}">${market}</span>
+        </div>
+        <div class="info-box" style="font-size:11px;margin-bottom:12px;">
+          役割: <strong>${role}</strong> / ポジション: ${s['ポジション'] || '-'} / 時間軸: ${s['時間軸'] || '-'}<br>
+          ${s['テーマ適合理由'] || ''}
+        </div>
+        <div class="form-group">
+          <label class="form-label">証券コード（修正可）</label>
+          <input class="form-input" type="text" id="stock_${i}_code"
+            value="${s['コード'] || ''}"
+            oninput="updateStockData(${i}, 'code', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">株価（${role}）<span class="required">*</span></label>
+          <input class="form-input" type="number" id="stock_${i}_price"
+            placeholder="${priceLabel}"
+            value="${s.price || s.price_main || ''}"
+            oninput="updateStockData(${i}, 'price', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">業績概況</label>
+          <input class="form-input" type="text" id="stock_${i}_performance"
+            placeholder="黒字 / 赤字 / ギリギリ 等"
+            value="${s.performance || ''}"
+            oninput="updateStockData(${i}, 'performance', this.value)">
+        </div>
+        <div class="toggle-wrap">
+          <div>
+            <div class="toggle-label">上場確認</div>
+            <div class="toggle-sub" id="stock_${i}_listed_label">${s.listed ? '上場不可' : '確認済'}</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="stock_${i}_listed"
+              ${s.listed ? 'checked' : ''}
+              onchange="updateStockData(${i}, 'listed', this.checked); checkAllListed(); updateListedLabel(${i})">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('step08_stocks_container').innerHTML = html;
+  document.getElementById('step08_recommend_card').style.display = 'block';
+  checkRecommendVersion();
+}
+
   const json = localStorage.getItem(KEY_PREFIX + 'step07_output') || '';
   if (!json.trim()) {
     document.getElementById('step08_stocks_container').innerHTML =
@@ -2653,16 +2781,10 @@ function renderStep08() {
   checkRecommendVersion();
 }
 
-function updateStockData(index, field, value) {
+function toggleStockSelect(i) {   const el = document.getElementById('stock_' + i + '_select');   const card = document.getElementById('stock_card_' + i);   if (!el || !card) return;   state.step08Data[i].selected = el.checked;   card.className = 'stock-card ' + (el.checked ? '' : 'unselected');   updateSelectedCount();   saveStockData(); }  function updateSelectedCount() {   const total = state.step08Data.length;   const selected = state.step08Data.filter(s => s.selected !== false).length;   const el = document.getElementById('step08_selected_count');   if (el) el.textContent = selected; }  function saveStockData() {   const saveData = state.step08Data.map(s => ({     code: s['コード'],     price: s.price,     performance: s.performance,     listed: s.listed,     selected: s.selected,   }));   localStorage.setItem(KEY_PREFIX + 'step08_data', JSON.stringify(saveData)); }  function updateStockData(index, field, value) {
   if (!state.step08Data[index]) return;
   state.step08Data[index][field] = value;
-  const saveData = state.step08Data.map(s => ({
-    code: s['コード'],
-    price: s.price,
-    performance: s.performance,
-    listed: s.listed,
-  }));
-  localStorage.setItem(KEY_PREFIX + 'step08_data', JSON.stringify(saveData));
+  saveStockData();
   checkRecommendVersion();
 }
 
@@ -2747,7 +2869,7 @@ function getAppendText(promptId) {
     'step02_prompt': () => { const s1 = get('step01_output'); return s1 ? '\n\n-----\n【STEP01 ニュース一覧】\n' + s1 : ''; },
     'step05_prompt': () => { const s4 = get('step04_output'); return s4 ? '\n\n-----\n【STEP04 因果チェーン出力】\n' + s4 : ''; },
     'step07_prompt_display': () => { const s4 = get('step04_output'); return s4 ? '\n\n-----\n【STEP04 因果チェーン出力】\n' + s4 : ''; },
-    'step09_prompt_display': () => {
+        'step09_prompt_display': () => {
       const s4 = get('step04_output');
       const s8 = get('step08_data');
       let append = '';
@@ -2755,12 +2877,14 @@ function getAppendText(promptId) {
       if (s8) {
         try {
           const stocks = JSON.parse(s8);
-          const stockText = stocks.map(s => `銘柄名:${s.code} 株価:${s.price||'未入力'} 業績:${s.performance||'未入力'}`).join('\n');
-          append += '\n\n-----\n【STEP08 銘柄情報】\n' + stockText;
+          const selected = stocks.filter(s => s.selected !== false);
+          const stockText = selected.map(s => `銘柄名:${s.code} 株価:${s.price||'未入力'} 業績:${s.performance||'未入力'}`).join('\n');
+          append += '\n\n-----\n【STEP08 選択銘柄情報】\n' + stockText;
         } catch(e) { showToast('JSON解析エラー: ' + e.message); }
       }
       return append;
     },
+
     'step10_prompt': () => { const s9 = get('step09_output'); return s9 ? '\n\n-----\n【STEP09 記事全文】\n' + s9 : ''; },
     'step11a_prompt': () => {
       const s9 = get('step09_output'); const s10 = get('step10_output'); let append = '';
